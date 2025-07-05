@@ -61,7 +61,7 @@ class CourseWork(Base):
     id = Column(Integer, primary_key=True, index=True)
     course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)
     title = Column(String, nullable=False)
-    type = Column(String, nullable=False) 
+    type = Column(String, nullable=False)
     description = Column(String, nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.now)
     updated_at = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)

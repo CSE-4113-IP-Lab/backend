@@ -5,6 +5,7 @@ class MarkType(enum.Enum):
     FINAL = "final"
     ASSIGNMENT = "assignment"
     PROJECT = "project"
+    VIVA = "viva"
 
 class MeetingStatusType(enum.Enum):
     INVITED = "invited"
