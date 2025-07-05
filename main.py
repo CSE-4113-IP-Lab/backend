@@ -4,6 +4,7 @@ from models import Base
 from db import engine
 import os
 from fastapi.staticfiles import StaticFiles
+from routers import router as api_router
 
 app = FastAPI()
 
@@ -26,3 +27,5 @@ app.mount("/api/v1/media", StaticFiles(directory="media"), name="media")
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the CSEDU backend!"}
+
+app.include_router(api_router)

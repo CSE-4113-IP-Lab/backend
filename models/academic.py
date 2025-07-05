@@ -1,9 +1,9 @@
 from datetime import datetime
 from models import Base
-from models.associations import student_programs, faculty_programs, coursework_files, coursework_submission_files
+from models import student_programs, faculty_programs, coursework_files, coursework_submission_files
 from sqlalchemy import Column, ForeignKey, Integer, String, Enum, DateTime, Float
 from sqlalchemy.orm import relationship
-from models.enum import MarkType, ProgramType, SubmissionStatus
+from models import MarkType, ProgramType, SubmissionStatus
 
 
 class Program(Base):
