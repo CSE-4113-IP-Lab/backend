@@ -1,8 +1,8 @@
 from passlib.context import CryptContext
 import logging
-from fastapi import UploadFile, File
+from fastapi import UploadFile, File as FileUpload
 from sqlalchemy.orm import Session
-from models.file import File
+from models import File
 import os
 import uuid
 import base64
@@ -18,7 +18,7 @@ def verify(plainPassword, hashedPassword):
     return pwdContext.verify(plainPassword, hashedPassword)
 
 
-async def upload_file(db:Session, sub_dir:str, file:UploadFile=File(...)): 
+async def upload_file(db:Session, sub_dir:str, file:UploadFile=FileUpload(...)): 
 
     if not os.path.exists(f"media/{sub_dir}"):
         os.makedirs(f"media/{sub_dir}")

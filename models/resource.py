@@ -3,7 +3,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Enum, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from models.enum import StatusType
+from models import StatusType
 
 
 class Equipment(Base):

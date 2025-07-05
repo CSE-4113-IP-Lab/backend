@@ -2,7 +2,7 @@ from models import Base
 from models.associations import student_programs, faculty_programs
 from sqlalchemy import Column, ForeignKey, Integer, String, Enum
 from sqlalchemy.orm import relationship
-from models.enum import UserRole
+from models import UserRole
 
 
 class User(Base):

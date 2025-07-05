@@ -4,7 +4,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Date, DateTime, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
-from models.enum import PostType, ScheduleType
+from models import PostType, ScheduleType
 
 
 

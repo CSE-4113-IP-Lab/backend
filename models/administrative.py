@@ -3,7 +3,7 @@ from models import Base
 from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 
-from models.enum import MeetingStatusType, StatusType
+from models import MeetingStatusType, StatusType
 
 
 class Meeting(Base):
