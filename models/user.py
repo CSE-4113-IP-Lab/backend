@@ -1,0 +1,58 @@
+from models import Base
+from models.associations import student_programs, faculty_programs
+from sqlalchemy import Column, ForeignKey, Integer, String, Enum
+from sqlalchemy.orm import relationship
+from models.enum import UserRole
+
+
+class User(Base):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    phone = Column(String, unique=True, index=True)
+    password = Column(String, nullable=True)
+    is_verified = Column(Integer, default=0)
+    role = Column(Enum(UserRole), default=UserRole.USER)
+    gender = Column(String, nullable=True)
+
+    image_id = Column(Integer, ForeignKey('files.id'), nullable=True)
+
+    image = relationship("File", uselist=False)
+    student = relationship("Student", back_populates="user")
+    faculty = relationship("Faculty", back_populates="user")
+    created_meetings = relationship("Meeting", back_populates="creator")
+    meeting_participations = relationship("MeetingParticipant", back_populates="user")
+    payment_transactions = relationship("PaymentTransaction", back_populates="user")
+    research_contributions = relationship("ResearchContribution", back_populates="user")
+
+
+class Student(Base):
+    __tablename__ = 'students'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    year = Column(Integer, nullable=False)
+    semester = Column(Integer, nullable=False)
+    registration_number = Column(String, unique=True, nullable=False)
+    session = Column(String, nullable=False)
+
+    user = relationship("User", back_populates="student")
+    programs = relationship("Program", secondary=student_programs, back_populates="students")
+    marks = relationship("Mark", back_populates="student")
+    submissions = relationship("CourseWorkSubmission", back_populates="student")
+
+
+class Faculty(Base):
+    __tablename__ = 'faculties'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    
+    designation = Column(String, nullable=False)
+    joining_date = Column(String, nullable=False)
+
+    user = relationship("User", back_populates="faculty")
+    courses = relationship("Course", back_populates="teacher")
+    programs = relationship("Program", secondary=faculty_programs, back_populates="faculties")
