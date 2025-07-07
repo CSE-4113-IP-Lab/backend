@@ -1,0 +1,174 @@
+from pydantic import BaseModel, ConfigDict
+from typing import Optional, List
+from datetime import datetime as DateTime
+from models import ProgramType, SubmissionStatus, MarkType
+from schemas import FileBase
+
+
+# Program schemas
+class ProgramBase(BaseModel):
+    type: ProgramType
+    name: str
+    duration: int
+    description: Optional[str] = None
+    is_active: Optional[int] = 1
+
+
+class ProgramCreate(ProgramBase):
+    pass
+
+
+class ProgramUpdate(BaseModel):
+    type: Optional[ProgramType] = None
+    name: Optional[str] = None
+    duration: Optional[int] = None
+    description: Optional[str] = None
+    is_active: Optional[int] = None
+
+
+class ProgramResponse(ProgramBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+# Course schemas
+class CourseBase(BaseModel):
+    name: str
+    program_id: int
+    teacher_id: Optional[int] = None
+    credits: int
+    description: Optional[str] = None
+
+
+class CourseCreate(CourseBase):
+    pass
+
+
+class CourseUpdate(BaseModel):
+    name: Optional[str] = None
+    program_id: Optional[int] = None
+    teacher_id: Optional[int] = None
+    credits: Optional[int] = None
+    description: Optional[str] = None
+
+
+class CourseResponse(CourseBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+# CourseWork schemas
+class CourseWorkBase(BaseModel):
+    course_id: int
+    title: str
+    type: str
+    description: Optional[str] = None
+    due_date: DateTime
+    marks: Optional[float] = None
+
+
+class CourseWorkCreate(CourseWorkBase):
+    created_by: int
+
+
+class CourseWorkUpdate(BaseModel):
+    course_id: Optional[int] = None
+    title: Optional[str] = None
+    type: Optional[str] = None
+    description: Optional[str] = None
+    due_date: Optional[DateTime] = None
+    marks: Optional[float] = None
+
+
+class CourseWorkResponse(CourseWorkBase):
+    id: int
+    created_by: int
+    created_at: DateTime
+    updated_at: DateTime
+    attachments: List[FileBase] = []
+
+    class Config:
+        from_attributes = True
+
+
+# CourseWorkSubmission schemas
+class CourseWorkSubmissionBase(BaseModel):
+    coursework_id: int
+    student_id: int
+    submission_date: str
+    status: Optional[SubmissionStatus] = SubmissionStatus.PENDING
+    obtained_marks: Optional[float] = None
+    feedback: Optional[str] = None
+
+
+class CourseWorkSubmissionCreate(CourseWorkSubmissionBase):
+    pass
+
+
+class CourseWorkSubmissionUpdate(BaseModel):
+    submission_date: Optional[str] = None
+    status: Optional[SubmissionStatus] = None
+    obtained_marks: Optional[float] = None
+    feedback: Optional[str] = None
+
+
+class CourseWorkSubmissionResponse(CourseWorkSubmissionBase):
+    id: int
+    attachments: List[FileBase] = []
+
+    class Config:
+        from_attributes = True
+
+
+# Mark schemas
+class MarkBase(BaseModel):
+    student_id: int
+    course_id: int
+    type: MarkType
+    marks_obtained: int
+    total_marks: int
+
+
+class MarkCreate(MarkBase):
+    pass
+
+
+class MarkUpdate(BaseModel):
+    student_id: Optional[int] = None
+    course_id: Optional[int] = None
+    type: Optional[MarkType] = None
+    marks_obtained: Optional[int] = None
+    total_marks: Optional[int] = None
+
+
+class MarkResponse(MarkBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+# CGPA calculation response
+class StudentCGPA(BaseModel):
+    student_id: int
+    student_name: str
+    registration_number: str
+    cgpa: float
+    total_credits: int
+
+    class Config:
+        from_attributes = True
+
+
+class ProgramCGPAResponse(BaseModel):
+    program_id: int
+    program_name: str
+    students: List[StudentCGPA] = []
+
+    class Config:
+        from_attributes = True
+

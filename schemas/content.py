@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import date as Date, datetime as DateTime
 from models import PostType, ScheduleType
-from schemas import *
+from schemas import FileBase
 
 
 class PostBase(BaseModel):

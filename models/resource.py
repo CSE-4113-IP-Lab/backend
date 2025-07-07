@@ -3,7 +3,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Enum, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from models import StatusType
+from models import StatusType, BookingType
 
 
 class Equipment(Base):
@@ -52,7 +52,7 @@ class Booking(Base):
     __tablename__ = 'bookings'
     
     id = Column(Integer, primary_key=True, index=True)
-    type = Column(String, nullable=False)  
+    type = Column(Enum(BookingType), nullable=False)  
     start_time = Column(String, nullable=False)
     end_time = Column(String, nullable=False)
     date = Column(String, nullable=False)

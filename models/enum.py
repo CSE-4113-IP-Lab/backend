@@ -3,9 +3,7 @@ import enum
 class MarkType(enum.Enum):
     MIDTERM = "midterm"
     FINAL = "final"
-    ASSIGNMENT = "assignment"
-    PROJECT = "project"
-    VIVA = "viva"
+    ATTENDANCE = "attendance"
 
 class MeetingStatusType(enum.Enum):
     INVITED = "invited"
@@ -48,5 +46,11 @@ class UserRole(enum.Enum):
     STUDENT = "student"
     STAFF = "staff" 
     USER = "user"
+
+class BookingType(enum.Enum):
+    CLASSROOM = "classroom"
+    LAB = "lab"
+    CONFERENCE_ROOM = "conference_room"
+    EVENT_SPACE = "event_space"
 
 

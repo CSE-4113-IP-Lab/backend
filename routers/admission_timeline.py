@@ -69,7 +69,7 @@ async def update_admission_timeline_attachment(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admission timeline not found")
     
     # Delete previous attachment if exists
-    if timeline.attachment_id:
+    if timeline.attachment_id: 
         delete_file(db, timeline.attachment_id)
     
     # Upload new file
