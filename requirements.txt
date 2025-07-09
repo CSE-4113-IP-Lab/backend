@@ -1,0 +1,23 @@
+# FastAPI and core dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Database dependencies
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+
+# Pydantic for data validation
+pydantic[email]==2.5.0
+
+# Authentication and security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# File upload and multipart support
+python-multipart==0.0.6
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Additional utilities
+aiofiles==23.2.0
