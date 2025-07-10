@@ -1,9 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, UploadFile, File
-from sqlalchemy.orm import Session
 from typing import List
 from dependency import get_db, get_current_user
 from models.academic import CourseWorkSubmission
-from models.file import File as FileModel
 from schemas.academic import CourseWorkSubmissionCreate, CourseWorkSubmissionUpdate, CourseWorkSubmissionResponse
 from utils import upload_file, delete_file
 

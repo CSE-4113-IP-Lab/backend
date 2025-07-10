@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import List
 from dependency import get_db, get_current_user
 from models.academic import Course

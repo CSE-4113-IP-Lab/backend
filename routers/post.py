@@ -20,7 +20,7 @@ def create_post(post: PostCreate, db: get_db, current_user: get_current_user):
 
 
 @router.get("", response_model=List[PostResponse])
-def get_posts(db: get_db, current_user: get_current_user):
+def get_posts(db: get_db):
     posts = db.query(Post).all()
     return posts
 

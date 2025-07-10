@@ -19,7 +19,7 @@ class Post(Base):
     created_at = Column(DateTime, nullable=False, default=datetime.now)
     updated_at = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
 
-    attachments = relationship("File", secondary=post_files)
+    attachments = relationship("File", secondary=post_files, overlaps="posts")
 
 
 class Schedule(Base):
