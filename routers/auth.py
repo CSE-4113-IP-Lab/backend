@@ -49,7 +49,9 @@ def signup(user: UserCreate, db: get_db):
         email=user.email,
         username=user.username,
         password=utils.hash(user.password),
-        role=user.role
+        role=user.role,
+        phone=user.phone,
+        gender=user.gender,
     )
     db.add(new_user)
     db.commit()
