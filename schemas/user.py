@@ -39,7 +39,6 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
     gender: Optional[str] = None
     role: Optional[UserRole] = None
-    is_verified: Optional[int] = None
 
 
 class UserResponse(UserBase):
@@ -73,12 +72,8 @@ class StudentUpdate(BaseModel):
     
     # User fields that can be updated
     username: Optional[str] = None
-    email: Optional[EmailStr] = None
     phone: Optional[str] = None
-    password: Optional[str] = None
     gender: Optional[str] = None
-    role: Optional[UserRole] = None
-    is_verified: Optional[int] = None
 
 
 class StudentResponse(StudentBase):
@@ -106,15 +101,10 @@ class FacultyUpdate(BaseModel):
     bio: Optional[str] = None
     designation: Optional[str] = None
     joining_date: Optional[str] = None
-    
     # User fields that can be updated
     username: Optional[str] = None
-    email: Optional[EmailStr] = None
     phone: Optional[str] = None
-    password: Optional[str] = None
     gender: Optional[str] = None
-    role: Optional[UserRole] = None
-    is_verified: Optional[int] = None
 
 
 class FacultyResponse(FacultyBase):

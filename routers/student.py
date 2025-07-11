@@ -46,9 +46,9 @@ def get_student_by_user_id(user_id: int, db: get_db, current_user: get_current_u
     return student
 
 
-@router.put("/{student_id}", response_model=StudentResponse)
-def update_student(student_id: int, student_update: StudentUpdate, db: get_db, current_user: get_current_user):
-    student = db.query(Student).filter(Student.id == student_id).first()
+@router.put("/user/{user_id}", response_model=StudentResponse)
+def update_student(user_id: int, student_update: StudentUpdate, db: get_db, current_user: get_current_user):
+    student = db.query(Student).filter(Student.user_id == user_id).first()
     if not student:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
     
@@ -58,13 +58,13 @@ def update_student(student_id: int, student_update: StudentUpdate, db: get_db, c
     if 'registration_number' in update_data:
         existing_student = db.query(Student).filter(
             Student.registration_number == update_data['registration_number'], 
-            Student.id != student_id
+            Student.id != student.id
         ).first()
         if existing_student:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Registration number already exists")
     
     # Handle user-related updates
-    user_fields = ['username', 'email', 'phone', 'password', 'gender', 'role', 'is_verified']
+    user_fields = ['username', 'phone', 'gender']
     user_update_data = {k: v for k, v in update_data.items() if k in user_fields}
     student_update_data = {k: v for k, v in update_data.items() if k not in user_fields}
     
