@@ -57,5 +57,6 @@ class Booking(Base):
     end_time = Column(String, nullable=False)
     date = Column(String, nullable=False)
     status = Column(Enum(StatusType), default=StatusType.PENDING)
+    request_by = relationship("User", back_populates="bookings", foreign_keys='Booking.request_by_id')
 
     equipment_entries = relationship("EquipmentEntry", back_populates="booking")
