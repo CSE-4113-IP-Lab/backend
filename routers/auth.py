@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from dependency import get_db
 from schemas import UserLogin, UserCreate
-from models import User
+from models import User, Student, Faculty, UserRole
 from oauth2 import createAccessToken
 import utils
 
@@ -49,9 +49,23 @@ def signup(user: UserCreate, db: get_db):
         email=user.email,
         username=user.username,
         password=utils.hash(user.password),
-        role=user.role
+        role=user.role,
+        phone=user.phone,
+        gender=user.gender,
     )
     db.add(new_user)
+    db.commit()
+    if user.role == UserRole.STUDENT:
+        student = Student(
+            user_id=new_user.id,
+        )
+    
+        db.add(student)
+    elif user.role == UserRole.FACULTY:
+        faculty = Faculty(
+            user_id=new_user.id,
+        )
+        db.add(faculty)
     db.commit()
     db.refresh(new_user)
 
@@ -61,3 +75,4 @@ def signup(user: UserCreate, db: get_db):
         "username": new_user.username,
         "role": new_user.role.value  
     }
+

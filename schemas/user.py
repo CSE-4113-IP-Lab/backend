@@ -92,6 +92,7 @@ class StudentResponse(StudentBase):
 
 # Faculty schemas
 class FacultyBase(BaseModel):
+    bio: Optional[str] = None
     designation: str
     joining_date: str
 
@@ -102,6 +103,7 @@ class FacultyCreate(FacultyBase):
 
 class FacultyUpdate(BaseModel):
     # Faculty-specific fields
+    bio: Optional[str] = None
     designation: Optional[str] = None
     joining_date: Optional[str] = None
     

@@ -3,7 +3,7 @@ from models import Base
 from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 
-from models import MeetingStatusType, StatusType
+from models import MeetingStatusType, StatusType,InviteStatusType
 
 
 class Meeting(Base):
@@ -15,8 +15,10 @@ class Meeting(Base):
     created_by = Column(Integer, ForeignKey('users.id'), nullable=False) 
     date = Column(Date, nullable=False)
     time = Column(Time, nullable=False)
-    location = Column(String, nullable=False) 
-    
+    platform = Column(String, nullable=True)
+    location = Column(String, nullable=False)
+    status = Column(Enum(MeetingStatusType), default=MeetingStatusType.SCHEDULED)
+
     creator = relationship("User", back_populates="created_meetings")
     participants = relationship("MeetingParticipant", back_populates="meeting")
 
@@ -28,11 +30,10 @@ class MeetingParticipant(Base):
     id = Column(Integer, primary_key=True, index=True)
     meeting_id = Column(Integer, ForeignKey('meetings.id'), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    status = Column(Enum(MeetingStatusType), default=MeetingStatusType.INVITED)
+    status = Column(Enum(InviteStatusType), default=InviteStatusType.INVITED)
 
     meeting = relationship("Meeting", back_populates="participants")
     user = relationship("User", back_populates="meeting_participations")
-
 
 class PaymentTransaction(Base):
     __tablename__ = 'payment_transactions'
