@@ -35,9 +35,9 @@ def get_faculty_by_user_id(user_id: int, db: get_db, current_user: get_current_u
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Faculty not found")
     return faculty
 
-@router.put("/{faculty_id}", response_model=FacultyResponse)
-def update_faculty(faculty_id: int, faculty_update: FacultyUpdate, db: get_db, current_user: get_current_user):
-    faculty = db.query(Faculty).filter(Faculty.id == faculty_id).first()
+@router.put("/user/{user_id}", response_model=FacultyResponse)
+def update_faculty(user_id: int, faculty_update: FacultyUpdate, db: get_db, current_user: get_current_user):
+    faculty = db.query(Faculty).filter(Faculty.user_id == user_id).first()
     if not faculty:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Faculty not found")
     

@@ -55,6 +55,7 @@ class BookingResponse(BaseModel):
     end_time: str
     date: str
     status: StatusType
+    request_by_id: int
     equipment_entries: List[dict]
     
     class Config:
