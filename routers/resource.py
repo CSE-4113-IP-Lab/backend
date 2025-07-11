@@ -16,7 +16,7 @@ from schemas.resource import (
 )
 
 
-router = APIRouter(prefix="/equipment", tags=["equipment"])
+router = APIRouter(prefix="/equipments", tags=["equipment"])
 
 
 # Helper Functions
@@ -54,7 +54,7 @@ def update_equipment_quantity(db: Session, equipment_id: int, quantity_change: i
 
 
 # Equipment Routes
-@router.post("/", response_model=EquipmentResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=EquipmentResponse, status_code=status.HTTP_201_CREATED)
 def add_equipment(
     equipment_data: EquipmentCreate,
     db: get_db,
@@ -115,7 +115,7 @@ def update_equipment(
     
     return equipment
 
-@router.get("/", response_model=List[EquipmentResponse])
+@router.get("", response_model=List[EquipmentResponse])
 def get_all_equipment(
     db: get_db,
     current_user: get_current_user
@@ -200,6 +200,50 @@ def create_booking(
     
     return booking
 
+
+@router.get("/booking", response_model=List[BookingResponse])
+def get_user_bookings(
+    db: get_db,
+    current_user: get_current_user
+):
+    """Get current user's bookings"""
+    bookings = db.query(Booking).filter(Booking.request_by_id == current_user.id).all()
+    return bookings
+
+@router.get("/booking/{booking_id}", response_model=BookingResponse)
+def get_booking_details(
+    booking_id: int,
+    db: get_db,
+    current_user: get_current_user
+):
+    """Get booking details - Own booking or Admin/Staff"""
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    if not booking:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Booking not found"
+        )
+    
+    # Check if user can view this booking
+    if booking.request_by_id != current_user.id and current_user.role not in [UserRole.ADMIN, UserRole.STAFF]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only view your own bookings"
+        )
+    
+    return booking
+
+@router.get("/booking/all", response_model=List[BookingResponse])
+def get_all_bookings(
+    db: get_db,
+    current_user: get_current_user
+):
+    """Get all bookings - Admin/Staff only"""
+    check_admin_or_staff(current_user)
+    
+    bookings = db.query(Booking).all()
+    return bookings
+
 @router.put("/booking/{booking_id}", response_model=BookingResponse)
 def update_booking(
     booking_id: int,
@@ -247,46 +291,3 @@ def update_booking(
     db.refresh(booking)
     
     return booking
-
-@router.get("/booking/", response_model=List[BookingResponse])
-def get_user_bookings(
-    db: get_db,
-    current_user: get_current_user
-):
-    """Get current user's bookings"""
-    bookings = db.query(Booking).filter(Booking.request_by_id == current_user.id).all()
-    return bookings
-
-@router.get("/booking/{booking_id}", response_model=BookingResponse)
-def get_booking_details(
-    booking_id: int,
-    db: get_db,
-    current_user: get_current_user
-):
-    """Get booking details - Own booking or Admin/Staff"""
-    booking = db.query(Booking).filter(Booking.id == booking_id).first()
-    if not booking:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Booking not found"
-        )
-    
-    # Check if user can view this booking
-    if booking.request_by_id != current_user.id and current_user.role not in [UserRole.ADMIN, UserRole.STAFF]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only view your own bookings"
-        )
-    
-    return booking
-
-@router.get("/booking/all/", response_model=List[BookingResponse])
-def get_all_bookings(
-    db: get_db,
-    current_user: get_current_user
-):
-    """Get all bookings - Admin/Staff only"""
-    check_admin_or_staff(current_user)
-    
-    bookings = db.query(Booking).all()
-    return bookings
