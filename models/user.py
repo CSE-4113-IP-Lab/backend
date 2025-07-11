@@ -1,6 +1,6 @@
 from models import Base
 from models.associations import student_programs, faculty_programs
-from sqlalchemy import Column, ForeignKey, Integer, String, Enum
+from sqlalchemy import Column, ForeignKey, Integer, String, Enum, Text
 from sqlalchemy.orm import relationship
 from models import UserRole
 
@@ -49,6 +49,8 @@ class Faculty(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+    bio = Column(Text, nullable=True)
     
     designation = Column(String, nullable=False)
     joining_date = Column(String, nullable=False)
