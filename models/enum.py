@@ -6,6 +6,12 @@ class MarkType(enum.Enum):
     ATTENDANCE = "attendance"
 
 class MeetingStatusType(enum.Enum):
+    SCHEDULED = "scheduled"
+    ONGOING = "ongoing"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+class InviteStatusType(enum.Enum):
     INVITED = "invited"
     ACCEPTED = "accepted"
     DECLINED = "declined"
