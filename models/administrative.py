@@ -33,7 +33,6 @@ class MeetingParticipant(Base):
     meeting = relationship("Meeting", back_populates="participants")
     user = relationship("User", back_populates="meeting_participations")
 
-
 class PaymentTransaction(Base):
     __tablename__ = 'payment_transactions'
     

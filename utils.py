@@ -2,7 +2,8 @@ from passlib.context import CryptContext
 import logging
 from fastapi import UploadFile, File as FileUpload
 from sqlalchemy.orm import Session
-from models import File
+from models import File, SystemLog
+from datetime import datetime
 import os
 import uuid
 import base64
@@ -71,4 +72,22 @@ def encode_into_base64(file: UploadFile):
 
 def decode_from_base64(base64_string:str):
     return base64.b64decode(base64_string)
+
+
+def create_system_log(db: Session, action: str, user_id: int = None, details: str = None):
+    try:
+       
+        
+        log_entry = SystemLog(
+            action=action,
+            user_id=user_id,
+            description=details,
+            timestamp=datetime.now()
+        )
+        db.add(log_entry)
+        db.commit()
+        return log_entry
+    except Exception as e:
+        logging.error(f"Failed to create system log: {e}")
+        return None
 

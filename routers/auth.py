@@ -63,3 +63,4 @@ def signup(user: UserCreate, db: get_db):
         "username": new_user.username,
         "role": new_user.role.value  
     }
+
