@@ -69,7 +69,7 @@ class CourseWork(Base):
     due_date = Column(DateTime, nullable=False)
     marks = Column(Float, nullable=True) 
 
-    attachments = relationship("File", secondary=coursework_files)
+    attachments = relationship("File", secondary=coursework_files, overlaps="courseworks")
     course = relationship("Course", back_populates="courseworks")
     submissions = relationship("CourseWorkSubmission", back_populates="coursework")
     creator = relationship("Faculty")
@@ -87,6 +87,6 @@ class CourseWorkSubmission(Base):
     obtained_marks = Column(Float, nullable=True)   
     feedback = Column(String, nullable=True)  
 
-    attachments = relationship("File", secondary=coursework_submission_files)
+    attachments = relationship("File", secondary=coursework_submission_files, overlaps="coursework_submissions")
     coursework = relationship("CourseWork", back_populates="submissions")
     student = relationship("Student", back_populates="submissions")

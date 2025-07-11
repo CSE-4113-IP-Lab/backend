@@ -13,7 +13,7 @@ load_dotenv()
 oauthScheme = OAuth2PasswordBearer(tokenUrl="api/v1/token")
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES") 
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1440)) 
 
 def createAccessToken(data:dict):
     toEncode =data.copy()
