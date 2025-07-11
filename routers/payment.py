@@ -34,7 +34,7 @@ def get_payment(payment_id: int, db: get_db):
     return payment
 
 
-@router.post("/my", response_model=List[PaymentResponse])
+@router.get("/me", response_model=List[PaymentResponse])
 def get_my_payments(db: get_db, current_user: get_current_user):
     return (
         db.query(PaymentTransaction)

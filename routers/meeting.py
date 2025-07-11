@@ -65,7 +65,7 @@ def get_invited_meetings(user_id: int, db: get_db):
     meetings = [p.meeting for p in participants if p.meeting is not None]
     return meetings
 
-@router.post("/my-created", response_model=List[MeetingResponse])
+@router.get("/created/me", response_model=List[MeetingResponse])
 def get_my_created_meetings(
     db: get_db,
     current_user: get_current_user
@@ -78,7 +78,7 @@ def get_my_created_meetings(
     return meetings
 
 
-@router.post("/my-invites", response_model=List[MeetingResponse])
+@router.get("/invites/me", response_model=List[MeetingResponse])
 def get_my_invited_meetings(db: get_db, current_user: get_current_user):
     participants = (
         db.query(MeetingParticipant)
