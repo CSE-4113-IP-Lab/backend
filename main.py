@@ -17,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-# Base.metadata.drop_all(bind=engine)  
+Base.metadata.drop_all(bind=engine)  
 Base.metadata.create_all(bind=engine)  
 
 
