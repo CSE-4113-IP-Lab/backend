@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 from dependency import get_db, get_current_user
 from models.content import Post
-from models import User
+from models import User, UserRole
 from schemas.content import PostCreate, PostUpdate, PostResponse
 from utils import upload_file, delete_file
 
@@ -245,6 +245,7 @@ def get_post_participants(
         "post_title": post.title,
         "participants_count": len(participants),
         "participants": participants
+    }
 
 @router.get("/archived", response_model=List[PostResponse])
 def get_archived_posts(db: get_db, current_user: get_current_user):
