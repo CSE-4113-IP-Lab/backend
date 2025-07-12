@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime as DateTime
 from models import ProgramType, SubmissionStatus, MarkType, DayOfWeek
@@ -105,6 +105,7 @@ class CourseWorkResponse(CourseWorkBase):
 
 # CourseWorkSubmission schemas
 class CourseWorkSubmissionBase(BaseModel):
+    id: int 
     coursework_id: int
     student_id: int
     submission_date: str
@@ -125,7 +126,6 @@ class CourseWorkSubmissionUpdate(BaseModel):
 
 
 class CourseWorkSubmissionResponse(CourseWorkSubmissionBase):
-    id: int
     coursework: Optional[CourseWorkResponse] = None
     attachments: List[FileBase] = []
 
@@ -133,9 +133,10 @@ class CourseWorkSubmissionResponse(CourseWorkSubmissionBase):
         from_attributes = True
 
 # Custom response model for student courseworks
-class StudentCourseworksResponse(BaseModel):
-    student_id: int
-    submissions: List[CourseWorkSubmissionResponse]
+class StudentCourseWorksResponse(CourseWorkBase):
+    course: Optional[CourseBase] = None
+    submission: Optional[CourseWorkSubmissionBase] = None
+   
 
 
 # Mark schemas
