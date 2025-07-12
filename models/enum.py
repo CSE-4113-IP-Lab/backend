@@ -69,3 +69,7 @@ class BookingType(enum.Enum):
     EVENT_SPACE = "event_space"
 
 
+class OTPType(enum.Enum):
+    Register ="REGISTER"
+    FORGOT_PASSWORD = "FORGOT_PASSWORD"
+

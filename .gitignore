@@ -7,3 +7,4 @@ pyproject.toml
 .python-version
 uv.lock
 docker-compose.yml
+.pytest_cache/** 

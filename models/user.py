@@ -1,8 +1,9 @@
+from datetime import datetime
 from models import Base
 from models.associations import student_programs, faculty_programs
-from sqlalchemy import Column, ForeignKey, Integer, String, Enum, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Enum, Text, JSON
 from sqlalchemy.orm import relationship
-from models import UserRole
+from models import UserRole, OTPType
 
 
 class User(Base):
@@ -57,6 +58,21 @@ class Faculty(Base):
     designation = Column(String, nullable=True)
     joining_date = Column(String, nullable=True)
 
+    on_leave = Column(Integer, default=0)  # 0 for no, 1 for yes
+
+    expertise = Column(JSON, nullable=True)  # Array of strings for areas of expertise
+
     user = relationship("User", back_populates="faculty")
     courses = relationship("Course", back_populates="teacher")
     programs = relationship("Program", secondary=faculty_programs, back_populates="faculties")
+
+
+
+class OTP(Base):
+    __tablename__ = 'otps'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    userEmail = Column(String,nullable=False)
+    otp= Column(String, nullable=False)
+    type = Column(Enum(OTPType), nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.now)
