@@ -120,6 +120,12 @@ class CourseWorkSubmissionCreate(BaseModel):
     student_id: int
     
 
+class CourseWorkSubmissionWithAttachments(CourseWorkSubmissionBase):
+    attachments: List[FileBase] = []
+
+    class Config:
+        from_attributes = True
+
 
 
 class CourseWorkSubmissionUpdate(BaseModel):
@@ -138,8 +144,9 @@ class CourseWorkSubmissionResponse(CourseWorkSubmissionBase):
 
 # Custom response model for student courseworks
 class StudentCourseWorksResponse(CourseWorkBase):
-    course: Optional[CourseResponse] = None
-    submission: Optional[CourseWorkSubmissionBase] = None
+    id: int
+    course: Optional[CourseBase] = None
+    submission: Optional[CourseWorkSubmissionWithAttachments] = None
     creator: Optional[FacultyResponse] = None
 
     class Config:

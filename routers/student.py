@@ -3,7 +3,9 @@ from typing import List
 from dependency import get_db, get_current_user
 from models import Student, Program, Course, CourseWork, CourseWorkSubmission
 from schemas import StudentUpdate, StudentResponse
-from schemas import StudentCourseWorksResponse, CourseResponse
+from schemas import StudentCourseWorksResponse, CourseBase, CourseWorkSubmissionBase, FacultyResponse
+from schemas.academic import CourseWorkSubmissionWithAttachments
+
 
 
 router = APIRouter(prefix="/students", tags=["Students"])
@@ -56,27 +58,31 @@ def get_student_courseworks( db: get_db, current_user: get_current_user):
     # Build response with coursework and submission data
     result = []
     for coursework in courseworks:
-        # Get the course information
-        course = coursework.course
+       
+       # Convert SQLAlchemy objects to Pydantic models using from_attributes
+       course = CourseBase.model_validate(coursework.course, from_attributes=True)
+
+       submission = submission_map.get(coursework.id)
+
+       submission_base = CourseWorkSubmissionWithAttachments.model_validate(submission, from_attributes=True) if submission else None
+
+       creator = FacultyResponse.model_validate(coursework.creator, from_attributes=True) if coursework.creator else None
+
+        # Create response object using model_validate to properly handle nested objects
+       coursework_response = StudentCourseWorksResponse(
+           id=coursework.id,
+           course_id=coursework.course_id,
+           title=coursework.title,
+           type=coursework.type,
+           description=coursework.description,
+           due_date=coursework.due_date,
+           marks=coursework.marks,
+           course=course,
+           submission=submission_base,
+           creator=creator
+       )
         
-        # Get submission if exists
-        submission = submission_map.get(coursework.id)
-        
-        # Create response object
-        coursework_response = StudentCourseWorksResponse(
-            id=coursework.id,
-            course_id=coursework.course_id,
-            title=coursework.title,
-            type=coursework.type,
-            description=coursework.description,
-            due_date=coursework.due_date,
-            marks=coursework.marks,
-            course=course,
-            submission=submission,
-            creator=coursework.creator if coursework.creator else None
-        )
-        
-        result.append(coursework_response)
+       result.append(coursework_response)
     
     return result
 
