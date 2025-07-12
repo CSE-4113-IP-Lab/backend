@@ -10,9 +10,9 @@ from schemas.research import (
 )
 from models.user import User
 
-router = APIRouter(prefix="/research", tags=["Researchs"])
+router = APIRouter(prefix="/researchs", tags=["Researchs"])
 
-@router.post("/", response_model=ResearchContributionResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ResearchContributionResponse, status_code=status.HTTP_201_CREATED)
 def create_contribution(
     contribution: ResearchContributionCreate,
     db: get_db,
@@ -24,7 +24,7 @@ def create_contribution(
     db.refresh(new_contribution)
     return new_contribution
 
-@router.get("/", response_model=List[ResearchContributionResponse])
+@router.get("", response_model=List[ResearchContributionResponse])
 def get_my_contributions(
     db: get_db,
     current_user: get_current_user

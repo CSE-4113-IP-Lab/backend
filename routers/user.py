@@ -7,11 +7,7 @@ from models.file import File as FileModel
 from schemas.user import  UserUpdate, UserResponse, PasswordChangeRequest
 from utils import upload_file, delete_file, hash, verify
 
-
-
 router = APIRouter(prefix="/users", tags=["Users"])
-
-
 
 @router.get("", response_model=List[UserResponse])
 def get_users(current_user: get_current_user, db: get_db, skip: int = 0, limit: int = 100, role: str = None):
@@ -37,12 +33,6 @@ def update_user(user_id: int, user_update: UserUpdate, db: get_db, current_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     update_data = user_update.model_dump(exclude_unset=True)
-    
-    # Check for unique constraints if updating
-    if 'email' in update_data:
-        existing_user = db.query(User).filter(User.email == update_data['email'], User.id != user_id).first()
-        if existing_user:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
     
     if 'username' in update_data:
         existing_user = db.query(User).filter(User.username == update_data['username'], User.id != user_id).first()

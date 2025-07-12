@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 from datetime import datetime as DateTime
 from models import ProgramType, SubmissionStatus, MarkType
-from schemas import FileBase
+from schemas import FileBase, FacultyResponse
 
 
 # Program schemas
@@ -72,8 +72,7 @@ class CourseWorkBase(BaseModel):
 
 
 class CourseWorkCreate(CourseWorkBase):
-    created_by: int
-
+    pass
 
 class CourseWorkUpdate(BaseModel):
     course_id: Optional[int] = None
@@ -87,6 +86,7 @@ class CourseWorkUpdate(BaseModel):
 class CourseWorkResponse(CourseWorkBase):
     id: int
     created_by: int
+    creator: Optional[FacultyResponse] = None
     created_at: DateTime
     updated_at: DateTime
     attachments: List[FileBase] = []
@@ -122,6 +122,11 @@ class CourseWorkSubmissionResponse(CourseWorkSubmissionBase):
 
     class Config:
         from_attributes = True
+
+# Custom response model for student courseworks
+class StudentCourseworksResponse(BaseModel):
+    student_id: int
+    submissions: List[CourseWorkSubmissionResponse]
 
 
 # Mark schemas

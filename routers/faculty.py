@@ -44,7 +44,7 @@ def update_faculty(user_id: int, faculty_update: FacultyUpdate, db: get_db, curr
     update_data = faculty_update.model_dump(exclude_unset=True)
     
     # Handle user-related updates
-    user_fields = ['username', 'email', 'phone', 'password', 'gender', 'role', 'is_verified']
+    user_fields = ['username', 'phone', 'gender']
     user_update_data = {k: v for k, v in update_data.items() if k in user_fields}
     faculty_update_data = {k: v for k, v in update_data.items() if k not in user_fields}
     
