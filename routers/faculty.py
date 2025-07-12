@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, func, cast, String
 from sqlalchemy.dialects.postgresql import JSONB
+
 from typing import List, Optional
 from dependency import get_db, get_current_user
 from models.user import Faculty, User
