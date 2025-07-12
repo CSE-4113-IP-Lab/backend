@@ -95,6 +95,7 @@ class CourseWorkResponse(CourseWorkBase):
     id: int
     created_by: int
     creator: Optional[FacultyResponse] = None
+    course: Optional[CourseBase] = None
     created_at: DateTime
     updated_at: DateTime
     attachments: List[FileBase] = []
@@ -136,6 +137,7 @@ class CourseWorkSubmissionResponse(CourseWorkSubmissionBase):
 class StudentCourseWorksResponse(CourseWorkBase):
     course: Optional[CourseBase] = None
     submission: Optional[CourseWorkSubmissionBase] = None
+    creator: Optional[FacultyResponse] = None
    
 
 

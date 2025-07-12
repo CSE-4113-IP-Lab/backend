@@ -22,26 +22,6 @@ def get_students(db: get_db, current_user: get_current_user, skip: int = 0, limi
     return students
 
 
-@router.get("/courses", response_model=List[CourseResponse])
-def get_student_courses(db: get_db, current_user: get_current_user):
-    """
-    Get all courses available to the student from their enrolled programs.
-    """
-    student = db.query(Student).filter(Student.user_id == current_user.id).first()
-    if not student:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
-    
-    # Get all programs the student is enrolled in
-    student_programs = [program.id for program in student.programs]
-    if not student_programs:
-        return []
-    
-    # Get all courses from programs
-    courses = db.query(Course).filter(Course.program_id.in_(student_programs)).all()
-    
-    return courses
-
-
 @router.get("/courseworks", response_model=List[StudentCourseWorksResponse])
 def get_student_courseworks( db: get_db, current_user: get_current_user):
     """
@@ -67,7 +47,7 @@ def get_student_courseworks( db: get_db, current_user: get_current_user):
     
     # Get existing submissions for this student
     existing_submissions = db.query(CourseWorkSubmission).filter(
-        CourseWorkSubmission.student_id == student.id,
+        CourseWorkSubmission.student_id == student.id
     ).all()
     
     # Create a map of coursework_id -> submission for quick lookup

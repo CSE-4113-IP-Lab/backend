@@ -117,6 +117,7 @@ class StudentResponse(StudentBase):
 # Faculty schemas
 class FacultyBase(BaseModel):
     bio: Optional[str] = None
+    on_leave: Optional[int] = None 
     designation: Optional[str] = None
     joining_date: Optional[str] = None
     on_leave: Optional[int] = 0
@@ -137,6 +138,7 @@ class FacultyUpdate(BaseModel):
     username: Optional[str] = None
     phone: Optional[str] = None
     gender: Optional[str] = None
+    on_leave: Optional[int] = None
 
 
 class FacultyResponse(FacultyBase):
