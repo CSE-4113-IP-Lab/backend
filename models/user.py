@@ -27,7 +27,9 @@ class User(Base):
     meeting_participations = relationship("MeetingParticipant", back_populates="user")
     research_contributions = relationship("ResearchContribution", back_populates="user")
     bookings = relationship("Booking", back_populates="request_by")
+    equipment_requests = relationship("EquipmentRequest", foreign_keys="EquipmentRequest.user_id", back_populates="user")
     posts = relationship("Post", secondary="post_participants", back_populates="participants")
+
 
 
 class Student(Base):

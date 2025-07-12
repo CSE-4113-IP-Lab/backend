@@ -1,9 +1,11 @@
 from models import Base
-from sqlalchemy import Column, ForeignKey, Integer, String, Enum, func
+from sqlalchemy import Column, ForeignKey, Integer, String, Enum, func, DateTime, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
+from datetime import datetime
 
 from models import StatusType, BookingType
+from models.enum import EquipmentRequestStatus
 
 
 class Equipment(Base):
@@ -13,27 +15,41 @@ class Equipment(Base):
     name = Column(String, unique=True, nullable=False)
     type = Column(String, nullable=False) 
     quantity = Column(Integer, nullable=False)
+    available_quantity = Column(Integer, nullable=False)  # Track available quantity directly
     description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     image_id = Column(Integer, ForeignKey('files.id'), nullable=True)
     image = relationship("File")
     
-    entries = relationship("EquipmentEntry", back_populates="equipment")
+    equipment_requests = relationship("EquipmentRequest", back_populates="equipment")
 
-    @hybrid_property
-    def available_quantity(self):
-        """Calculate available quantity based on total quantity minus entries"""
-        if self.entries:
-            used_quantity = sum(entry.quantity for entry in self.entries)
-            return self.quantity - used_quantity
-        return self.quantity
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if 'available_quantity' not in kwargs:
+            self.available_quantity = self.quantity
 
-    @available_quantity.expression
-    def available_quantity(cls):
-        """SQL expression for available_quantity for database queries"""
-        return cls.quantity - func.coalesce(
-            func.sum(EquipmentEntry.quantity), 0
-        )
+
+class EquipmentRequest(Base):
+    __tablename__ = 'equipment_requests'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    equipment_id = Column(Integer, ForeignKey('equipments.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    status = Column(Enum(EquipmentRequestStatus), default=EquipmentRequestStatus.PENDING)
+    purpose = Column(Text, nullable=True)
+    request_date = Column(DateTime, default=datetime.utcnow)
+    approved_date = Column(DateTime, nullable=True)
+    handover_date = Column(DateTime, nullable=True)
+    return_date = Column(DateTime, nullable=True)
+    approved_by_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    notes = Column(Text, nullable=True)
+    
+    equipment = relationship("Equipment", back_populates="equipment_requests")
+    user = relationship("User", foreign_keys=[user_id], back_populates="equipment_requests")
+    approved_by = relationship("User", foreign_keys=[approved_by_id])
 
 
 class EquipmentEntry(Base):
@@ -45,7 +61,7 @@ class EquipmentEntry(Base):
     quantity = Column(Integer, nullable=False)
 
     
-    equipment = relationship("Equipment", back_populates="entries")
+    equipment = relationship("Equipment")
     booking = relationship("Booking", back_populates="equipment_entries")
 
 class Booking(Base):

@@ -12,5 +12,6 @@ from models.content import *
 from models.resource import *
 from models.administrative import *
 from models.log import *
+from models.room import *
 
 

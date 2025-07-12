@@ -2,11 +2,12 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from models.enum import BookingType, StatusType
-from models.resource import Equipment, Booking, EquipmentEntry
+from models.enum import BookingType, StatusType, EquipmentRequestStatus
+from models.resource import Equipment, Booking, EquipmentEntry, EquipmentRequest
+from datetime import datetime
 
 
-# Pydantic Models
+# Equipment Schemas
 class EquipmentCreate(BaseModel):
     name: str
     type: str
@@ -18,6 +19,7 @@ class EquipmentUpdate(BaseModel):
     name: Optional[str] = None
     type: Optional[str] = None
     quantity: Optional[int] = None
+    available_quantity: Optional[int] = None
     description: Optional[str] = None
     image_id: Optional[int] = None
 
@@ -29,10 +31,43 @@ class EquipmentResponse(BaseModel):
     available_quantity: int
     description: Optional[str] = None
     image_id: Optional[int] = None
+    created_at: datetime
+    updated_at: datetime
     
     class Config:
         from_attributes = True
 
+
+# Equipment Request Schemas
+class EquipmentRequestCreate(BaseModel):
+    equipment_id: int
+    quantity: int
+    purpose: Optional[str] = None
+
+class EquipmentRequestUpdate(BaseModel):
+    status: Optional[EquipmentRequestStatus] = None
+    notes: Optional[str] = None
+
+class EquipmentRequestResponse(BaseModel):
+    id: int
+    equipment_id: int
+    user_id: int
+    quantity: int
+    status: EquipmentRequestStatus
+    purpose: Optional[str] = None
+    request_date: datetime
+    approved_date: Optional[datetime] = None
+    handover_date: Optional[datetime] = None
+    return_date: Optional[datetime] = None
+    approved_by_id: Optional[int] = None
+    notes: Optional[str] = None
+    equipment: EquipmentResponse
+    
+    class Config:
+        from_attributes = True
+
+
+# Booking Schemas (keeping existing ones)
 class BookingCreate(BaseModel):
     type: BookingType
     start_time: str
