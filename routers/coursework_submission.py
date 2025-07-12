@@ -4,6 +4,7 @@ from dependency import get_db, get_current_user
 from models.academic import CourseWorkSubmission
 from schemas.academic import CourseWorkSubmissionCreate, CourseWorkSubmissionUpdate, CourseWorkSubmissionResponse
 from utils import upload_file, delete_file
+from datetime import datetime
 
 router = APIRouter(prefix="/coursework-submissions", tags=["CourseWork Submissions"])
 
@@ -11,6 +12,7 @@ router = APIRouter(prefix="/coursework-submissions", tags=["CourseWork Submissio
 @router.post("", response_model=CourseWorkSubmissionResponse, status_code=status.HTTP_201_CREATED)
 def create_coursework_submission(submission: CourseWorkSubmissionCreate, db: get_db, current_user: get_current_user):
     db_submission = CourseWorkSubmission(**submission.model_dump())
+    db_submission.submission_date = datetime.now() 
     db.add(db_submission)
     db.commit()
     db.refresh(db_submission)

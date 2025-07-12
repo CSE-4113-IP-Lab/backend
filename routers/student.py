@@ -72,7 +72,8 @@ def get_student_courseworks( db: get_db, current_user: get_current_user):
             due_date=coursework.due_date,
             marks=coursework.marks,
             course=course,
-            submission=submission
+            submission=submission,
+            creator=coursework.creator if coursework.creator else None
         )
         
         result.append(coursework_response)

@@ -87,7 +87,7 @@ class CourseWorkSubmission(Base):
     id = Column(Integer, primary_key=True, index=True)
     coursework_id = Column(Integer, ForeignKey('courseworks.id'), nullable=False)
     student_id = Column(Integer, ForeignKey('students.id'), nullable=False)
-    submission_date = Column(String, nullable=False)
+    submission_date = Column(String, nullable=False, default=datetime.now())  
     status = Column(Enum(SubmissionStatus), default=SubmissionStatus.PENDING) 
 
     obtained_marks = Column(Float, nullable=True)   

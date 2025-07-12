@@ -115,8 +115,11 @@ class CourseWorkSubmissionBase(BaseModel):
     feedback: Optional[str] = None
 
 
-class CourseWorkSubmissionCreate(CourseWorkSubmissionBase):
-    pass
+class CourseWorkSubmissionCreate(BaseModel):
+    coursework_id: int
+    student_id: int
+    
+
 
 
 class CourseWorkSubmissionUpdate(BaseModel):
@@ -135,9 +138,12 @@ class CourseWorkSubmissionResponse(CourseWorkSubmissionBase):
 
 # Custom response model for student courseworks
 class StudentCourseWorksResponse(CourseWorkBase):
-    course: Optional[CourseBase] = None
+    course: Optional[CourseResponse] = None
     submission: Optional[CourseWorkSubmissionBase] = None
     creator: Optional[FacultyResponse] = None
+
+    class Config:
+        from_attributes = True
    
 
 
