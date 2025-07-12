@@ -118,6 +118,7 @@ class CourseWorkSubmissionUpdate(BaseModel):
 
 class CourseWorkSubmissionResponse(CourseWorkSubmissionBase):
     id: int
+    coursework: Optional[CourseWorkResponse] = None
     attachments: List[FileBase] = []
 
     class Config:
