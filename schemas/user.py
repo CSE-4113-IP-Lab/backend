@@ -120,7 +120,6 @@ class FacultyBase(BaseModel):
     on_leave: Optional[int] = None 
     designation: Optional[str] = None
     joining_date: Optional[str] = None
-    on_leave: Optional[int] = 0
     expertise: Optional[List[str]] = None  
 
 
