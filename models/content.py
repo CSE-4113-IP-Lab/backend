@@ -15,12 +15,12 @@ class Post(Base):
     type = Column(Enum(PostType), nullable=False)
     title = Column(String, nullable=False)
     content = Column(String, nullable=False)
-    date = Column(Date, nullable=False)  # Date of the post
+    date = Column(Date, nullable=False)  
     created_at = Column(DateTime, nullable=False, default=datetime.now)
     updated_at = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
 
     attachments = relationship("File", secondary=post_files, overlaps="posts")
-
+    participants = relationship("User", secondary="post_participants", back_populates="posts")
 
 class Schedule(Base):
     __tablename__ = 'schedules'
