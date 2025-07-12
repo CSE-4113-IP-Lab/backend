@@ -88,8 +88,8 @@ class StudentResponse(StudentBase):
 # Faculty schemas
 class FacultyBase(BaseModel):
     bio: Optional[str] = None
-    designation: str
-    joining_date: str
+    designation: Optional[str] = None
+    joining_date: Optional[str] = None
 
 
 class FacultyCreate(FacultyBase):

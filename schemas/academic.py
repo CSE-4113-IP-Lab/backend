@@ -72,8 +72,7 @@ class CourseWorkBase(BaseModel):
 
 
 class CourseWorkCreate(CourseWorkBase):
-    created_by: int
-
+    pass
 
 class CourseWorkUpdate(BaseModel):
     course_id: Optional[int] = None
@@ -123,6 +122,11 @@ class CourseWorkSubmissionResponse(CourseWorkSubmissionBase):
 
     class Config:
         from_attributes = True
+
+# Custom response model for student courseworks
+class StudentCourseworksResponse(BaseModel):
+    student_id: int
+    submissions: List[CourseWorkSubmissionResponse]
 
 
 # Mark schemas
