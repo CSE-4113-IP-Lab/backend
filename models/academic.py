@@ -3,7 +3,7 @@ from models import Base
 from models import student_programs, faculty_programs, coursework_files, coursework_submission_files
 from sqlalchemy import Column, ForeignKey, Integer, String, Enum, DateTime, Float
 from sqlalchemy.orm import relationship
-from models import MarkType, ProgramType, SubmissionStatus
+from models import MarkType, ProgramType, SubmissionStatus, DayOfWeek
 
 
 class Program(Base):
@@ -11,13 +11,15 @@ class Program(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     type = Column(Enum(ProgramType), nullable=False)  # e.g., 'BSc', 'MSc', 'PhD'
-    name = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
     duration = Column(Integer, nullable=False)  # in years
     description = Column(String, nullable=True)
 
     is_active = Column(Integer, default=1) 
 
     courses = relationship("Course", back_populates="program")
+    transactions = relationship("PaymentTransaction", back_populates="program")
+    payment_fees = relationship("PaymentFee", back_populates="program")
     schedules = relationship("Schedule", back_populates="program")
     admission_timelines = relationship("AdmissionTimeline", back_populates="program")
     students = relationship("Student", secondary=student_programs, back_populates="programs")
@@ -28,17 +30,21 @@ class Course(Base):
     __tablename__ = 'courses'
     
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    course_code = Column(String, unique=True, nullable=True)
     program_id = Column(Integer, ForeignKey('programs.id'), nullable=False)
     teacher_id = Column(Integer, ForeignKey('faculties.id'), nullable=True)
     credits = Column(Integer, nullable=False)
     description = Column(String, nullable=True)
+    semester = Column(Integer, nullable=True)  # Which semester (1-8)
+    year = Column(Integer, nullable=True)  # Which year (1-4)
+    batch = Column(String, nullable=True)  # Batch identifier
 
     teacher = relationship("Faculty", back_populates="courses")
     program = relationship("Program", back_populates="courses")
     courseworks = relationship("CourseWork", back_populates="course")
     marks = relationship("Mark", back_populates="course")
-    transactions = relationship("PaymentTransaction", back_populates="course")
+   
 
 
 class Mark(Base):
@@ -90,3 +96,20 @@ class CourseWorkSubmission(Base):
     attachments = relationship("File", secondary=coursework_submission_files, overlaps="coursework_submissions")
     coursework = relationship("CourseWork", back_populates="submissions")
     student = relationship("Student", back_populates="submissions")
+
+
+class ClassSchedule(Base):
+    __tablename__ = 'class_schedules'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)
+    day_of_week = Column(Enum(DayOfWeek), nullable=False)
+    start_time = Column(String, nullable=False)  # Format: "HH:MM"
+    end_time = Column(String, nullable=False)    # Format: "HH:MM"
+    room = Column(String, nullable=True)
+    batch = Column(String, nullable=True)
+    semester = Column(Integer, nullable=True)
+    year = Column(Integer, nullable=True)
+    is_active = Column(Integer, default=1)
+
+    course = relationship("Course")

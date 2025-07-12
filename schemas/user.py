@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional, List
-from models import UserRole
+from datetime import datetime
+from models import UserRole, OTPType
 from schemas import FileBase
 
 class UserLogin(BaseModel):
@@ -12,6 +13,34 @@ class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: str
     confirm_password: str
+
+class OAuthUserCreate(BaseModel):
+    username: str
+    email : EmailStr
+    role : UserRole = UserRole.USER  
+
+
+# OTP schemas
+class OTPCreate(BaseModel):
+    userEmail: EmailStr
+    otp: str
+    type: OTPType
+
+
+class OTPVerify(BaseModel):
+    userEmail: EmailStr
+    otp: str
+    type: OTPType
+
+
+class OTPResponse(BaseModel):
+    id: int
+    userEmail: str
+    type: OTPType
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 # User schemas
@@ -53,10 +82,10 @@ class UserResponse(UserBase):
 
 # Student schemas
 class StudentBase(BaseModel):
-    year: int
-    semester: int
-    registration_number: str
-    session: str
+    year: Optional[int] = None
+    semester: Optional[int] = None
+    registration_number: Optional[str] = None
+    session: Optional[str] = None
 
 
 class StudentCreate(StudentBase):
@@ -88,8 +117,10 @@ class StudentResponse(StudentBase):
 # Faculty schemas
 class FacultyBase(BaseModel):
     bio: Optional[str] = None
-    designation: str
-    joining_date: str
+    designation: Optional[str] = None
+    joining_date: Optional[str] = None
+    on_leave: Optional[int] = 0
+    expertise: Optional[List[str]] = None  
 
 
 class FacultyCreate(FacultyBase):
@@ -101,6 +132,7 @@ class FacultyUpdate(BaseModel):
     bio: Optional[str] = None
     designation: Optional[str] = None
     joining_date: Optional[str] = None
+    expertise: Optional[List[str]] = None
     # User fields that can be updated
     username: Optional[str] = None
     phone: Optional[str] = None

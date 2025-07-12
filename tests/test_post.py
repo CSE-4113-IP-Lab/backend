@@ -17,7 +17,7 @@ def test_post_crud():
         "phone": "345",
         "password": "password123",
         "gender": "male",
-        "role": "user"
+        "role": "admin"
     })
     assert signup_response.status_code == 201
     user_id = signup_response.json().get("id")
@@ -115,7 +115,7 @@ def test_post_not_found():
         "phone": "345",
         "password": "password123",
         "gender": "male",
-        "role": "user"
+        "role": "admin"
     })
     assert signup_response.status_code == 201
     user_id = signup_response.json().get("id")
@@ -165,7 +165,7 @@ def test_post_different_types():
         "phone": "345",
         "password": "password123",
         "gender": "male",
-        "role": "user"
+        "role": "admin"
     })
     user_id = signup_response.json().get("id")
     
@@ -218,3 +218,268 @@ def test_post_unauthorized():
     
     response = client.post(f"{BASE_URL}/posts", json=post_data)
     assert response.status_code == 401
+
+
+def test_post_participant_management():
+    """Test complete participant management for posts"""
+    
+    # Create first user (post creator)
+    signup_response1 = client.post(f"{BASE_URL}/auth/signup", json={
+        "username": "postcreator123",
+        "email": "postcreator@test.com",
+        "phone": "345",
+        "password": "password123",
+        "gender": "male",
+        "role": "admin"
+    })
+    assert signup_response1.status_code == 201
+    creator_id = signup_response1.json().get("id")
+    
+    # Login creator
+    login_response1 = client.post(f"{BASE_URL}/auth/login", json={
+        "email": "postcreator@test.com",
+        "password": "password123"
+    })
+    assert login_response1.status_code == 200
+    creator_token = "Bearer " + login_response1.json().get("access_token")
+    
+    # Create second user (participant)
+    signup_response2 = client.post(f"{BASE_URL}/auth/signup", json={
+        "username": "participant123",
+        "email": "participant@test.com",
+        "phone": "345",
+        "password": "password123",
+        "gender": "female",
+        "role": "user"
+    })
+    assert signup_response2.status_code == 201
+    participant_id = signup_response2.json().get("id")
+    
+    # Login participant
+    login_response2 = client.post(f"{BASE_URL}/auth/login", json={
+        "email": "participant@test.com",
+        "password": "password123"
+    })
+    assert login_response2.status_code == 200
+    participant_token = "Bearer " + login_response2.json().get("access_token")
+    
+    # Create third user (another participant)
+    signup_response3 = client.post(f"{BASE_URL}/auth/signup", json={
+        "username": "participant2_123",
+        "email": "participant2@test.com",
+        "phone": "345",
+        "password": "password123",
+        "gender": "male",
+        "role": "user"
+    })
+    assert signup_response3.status_code == 201
+    participant2_id = signup_response3.json().get("id")
+    
+    # Create a post
+    post_data = {
+        "type": "event",
+        "title": "Test Event with Participants",
+        "content": "This is a test event for participant management",
+        "date": str(date.today())
+    }
+    
+    create_response = client.post(
+        f"{BASE_URL}/posts", 
+        json=post_data,
+        headers={"Authorization": creator_token}
+    )
+    assert create_response.status_code == 201
+    post_id = create_response.json()["id"]
+    
+    # Test initial participants list (should be empty)
+    participants_response = client.get(
+        f"{BASE_URL}/posts/{post_id}/participants",
+        headers={"Authorization": creator_token}
+    )
+    assert participants_response.status_code == 200
+    participants_data = participants_response.json()
+    assert participants_data["participants_count"] == 0
+    assert len(participants_data["participants"]) == 0
+    
+    # Test add first participant
+    add_participant_response = client.post(
+        f"{BASE_URL}/posts/{post_id}/participants/{participant_id}",
+        headers={"Authorization": creator_token}
+    )
+    assert add_participant_response.status_code == 200
+    assert "successfully added as participant" in add_participant_response.json()["message"]
+    
+    # Test add second participant
+    add_participant2_response = client.post(
+        f"{BASE_URL}/posts/{post_id}/participants/{participant2_id}",
+        headers={"Authorization": creator_token}
+    )
+    assert add_participant2_response.status_code == 200
+    
+    # Test participants list after adding participants
+    participants_response = client.get(
+        f"{BASE_URL}/posts/{post_id}/participants",
+        headers={"Authorization": creator_token}
+    )
+    assert participants_response.status_code == 200
+    participants_data = participants_response.json()
+    assert participants_data["participants_count"] == 2
+    assert len(participants_data["participants"]) == 2
+    
+    # Check participant details
+    participant_ids = [p["id"] for p in participants_data["participants"]]
+    assert participant_id in participant_ids
+    assert participant2_id in participant_ids
+    
+    # Test add duplicate participant (should fail)
+    duplicate_response = client.post(
+        f"{BASE_URL}/posts/{post_id}/participants/{participant_id}",
+        headers={"Authorization": creator_token}
+    )
+    assert duplicate_response.status_code == 409
+    assert "already a participant" in duplicate_response.json()["detail"]
+    
+    # Test remove participant
+    remove_response = client.delete(
+        f"{BASE_URL}/posts/{post_id}/participants/{participant_id}",
+        headers={"Authorization": creator_token}
+    )
+    assert remove_response.status_code == 200
+    assert "successfully removed from post" in remove_response.json()["message"]
+    
+    # Test participants list after removal
+    participants_response = client.get(
+        f"{BASE_URL}/posts/{post_id}/participants",
+        headers={"Authorization": creator_token}
+    )
+    assert participants_response.status_code == 200
+    participants_data = participants_response.json()
+    assert participants_data["participants_count"] == 1
+    assert len(participants_data["participants"]) == 1
+    assert participants_data["participants"][0]["id"] == participant2_id
+    
+    # Test remove non-participant (should fail)
+    remove_non_participant_response = client.delete(
+        f"{BASE_URL}/posts/{post_id}/participants/{participant_id}",
+        headers={"Authorization": creator_token}
+    )
+    assert remove_non_participant_response.status_code == 404
+    assert "not a participant" in remove_non_participant_response.json()["detail"]
+    
+    # Clean up - remove remaining participant
+    client.delete(
+        f"{BASE_URL}/posts/{post_id}/participants/{participant2_id}",
+        headers={"Authorization": creator_token}
+    )
+    
+    # Clean up - delete post
+    client.delete(
+        f"{BASE_URL}/posts/{post_id}",
+        headers={"Authorization": creator_token}
+    )
+    
+    # Clean up - delete users
+    client.delete(f"{BASE_URL}/users/{creator_id}", headers={"Authorization": creator_token})
+    client.delete(f"{BASE_URL}/users/{participant_id}", headers={"Authorization": participant_token})
+    client.delete(f"{BASE_URL}/users/{participant2_id}", headers={"Authorization": creator_token})
+
+
+def test_post_participant_not_found_scenarios():
+    """Test participant management with non-existent posts and users"""
+    
+    # Create user and get token
+    signup_response = client.post(f"{BASE_URL}/auth/signup", json={
+        "username": "notfoundtest123",
+        "email": "notfoundtest@test.com",
+        "phone": "345",
+        "password": "password123",
+        "gender": "male",
+        "role": "admin"
+    })
+    assert signup_response.status_code == 201
+    user_id = signup_response.json().get("id")
+    
+    login_response = client.post(f"{BASE_URL}/auth/login", json={
+        "email": "notfoundtest@test.com",
+        "password": "password123"
+    })
+    access_token = login_response.json().get("access_token")
+    token = "Bearer " + access_token
+    
+    # Create a post for testing
+    post_data = {
+        "type": "notice",
+        "title": "Test Post for Not Found",
+        "content": "Testing not found scenarios",
+        "date": str(date.today())
+    }
+    
+    create_response = client.post(
+        f"{BASE_URL}/posts", 
+        json=post_data,
+        headers={"Authorization": token}
+    )
+    post_id = create_response.json()["id"]
+    
+    non_existent_post_id = 99999
+    non_existent_user_id = 99999
+    
+    # Test add participant to non-existent post
+    add_to_non_post_response = client.post(
+        f"{BASE_URL}/posts/{non_existent_post_id}/participants/{user_id}",
+        headers={"Authorization": token}
+    )
+    assert add_to_non_post_response.status_code == 404
+    assert "Post not found" in add_to_non_post_response.json()["detail"]
+    
+    # Test add non-existent user to post
+    add_non_user_response = client.post(
+        f"{BASE_URL}/posts/{post_id}/participants/{non_existent_user_id}",
+        headers={"Authorization": token}
+    )
+    assert add_non_user_response.status_code == 404
+    assert "User not found" in add_non_user_response.json()["detail"]
+    
+    # Test remove participant from non-existent post
+    remove_from_non_post_response = client.delete(
+        f"{BASE_URL}/posts/{non_existent_post_id}/participants/{user_id}",
+        headers={"Authorization": token}
+    )
+    assert remove_from_non_post_response.status_code == 404
+    assert "Post not found" in remove_from_non_post_response.json()["detail"]
+    
+    # Test remove non-existent user from post
+    remove_non_user_response = client.delete(
+        f"{BASE_URL}/posts/{post_id}/participants/{non_existent_user_id}",
+        headers={"Authorization": token}
+    )
+    assert remove_non_user_response.status_code == 404
+    assert "User not found" in remove_non_user_response.json()["detail"]
+    
+    # Test get participants of non-existent post
+    get_participants_non_post_response = client.get(
+        f"{BASE_URL}/posts/{non_existent_post_id}/participants",
+        headers={"Authorization": token}
+    )
+    assert get_participants_non_post_response.status_code == 404
+    assert "Post not found" in get_participants_non_post_response.json()["detail"]
+    
+    # Clean up
+    client.delete(f"{BASE_URL}/posts/{post_id}", headers={"Authorization": token})
+    client.delete(f"{BASE_URL}/users/{user_id}", headers={"Authorization": token})
+
+
+def test_post_participant_unauthorized():
+    """Test unauthorized access to participant management endpoints"""
+    
+    # Test add participant without auth
+    add_response = client.post(f"{BASE_URL}/posts/1/participants/1")
+    assert add_response.status_code == 401
+    
+    # Test remove participant without auth
+    remove_response = client.delete(f"{BASE_URL}/posts/1/participants/1")
+    assert remove_response.status_code == 401
+    
+    # Test get participants without auth
+    get_response = client.get(f"{BASE_URL}/posts/1/participants")
+    assert get_response.status_code == 401

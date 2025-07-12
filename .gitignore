@@ -1,5 +1,10 @@
 **/__pycache__/** 
-
+media/** 
 .env
 .DS_Store
-media/**
+.venv
+pyproject.toml
+.python-version
+uv.lock
+docker-compose.yml
+.pytest_cache/** 

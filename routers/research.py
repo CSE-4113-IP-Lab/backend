@@ -6,6 +6,7 @@ from dependency import get_db, get_current_user
 from models.administrative import ResearchContribution
 from schemas.research import (
     ResearchContributionCreate,
+    ResearchContributionUpdate,
     ResearchContributionResponse,
 )
 from models.user import User
@@ -18,7 +19,7 @@ def create_contribution(
     db: get_db,
     current_user: get_current_user
 ):
-    new_contribution = ResearchContribution(**contribution.dict(), user_id=current_user.id)
+    new_contribution = ResearchContribution(**contribution.model_dump(), user_id=current_user.id)
     db.add(new_contribution)
     db.commit()
     db.refresh(new_contribution)
@@ -35,18 +36,22 @@ def get_my_contributions(
 @router.put("/{contribution_id}", response_model=ResearchContributionResponse)
 def update_contribution(
     contribution_id: int,
-    updated_data: ResearchContributionCreate,
+    updated_data: ResearchContributionUpdate,
     db: get_db,
     current_user: get_current_user
 ):
     contribution = db.query(ResearchContribution).filter_by(id=contribution_id).first()
     if not contribution:
         raise HTTPException(status_code=404, detail="Contribution not found")
-
-    if contribution.user_id != current_user.id and current_user.role != "admin":
+    
+    # Check authorization - only the owner can update their contribution
+    if contribution.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to update this contribution")
 
-    for field, value in updated_data.dict(exclude_unset=True).items():
+    # Use model_dump() instead of model_dump(exclude_unset=True) for updates
+    update_data = updated_data.model_dump(exclude_unset=True)
+    
+    for field, value in update_data.items():
         setattr(contribution, field, value)
 
     db.commit()

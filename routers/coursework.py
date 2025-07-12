@@ -2,8 +2,10 @@ from fastapi import APIRouter, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
 from dependency import get_db, get_current_user
-from models.academic import CourseWork
-from schemas.academic import CourseWorkCreate, CourseWorkUpdate, CourseWorkResponse
+from models import CourseWork
+from models import Faculty
+from models import CourseWorkSubmission
+from schemas import CourseWorkCreate, CourseWorkUpdate, CourseWorkResponse, CourseWorkSubmissionResponse
 from utils import upload_file, delete_file
 
 router = APIRouter(prefix="/courseworks", tags=["CourseWorks"])
@@ -12,6 +14,10 @@ router = APIRouter(prefix="/courseworks", tags=["CourseWorks"])
 @router.post("", response_model=CourseWorkResponse, status_code=status.HTTP_201_CREATED)
 def create_coursework(coursework: CourseWorkCreate, db: get_db, current_user: get_current_user):
     db_coursework = CourseWork(**coursework.model_dump())
+    faculty = db.query(Faculty).filter(Faculty.user_id == current_user.id).first()
+    if not faculty:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You must be a faculty member to create coursework")
+    db_coursework.created_by = faculty.id  # Use faculty.id instead of the faculty object
     db.add(db_coursework)
     db.commit()
     db.refresh(db_coursework)
@@ -30,6 +36,19 @@ def get_coursework(coursework_id: int, db: get_db, current_user: get_current_use
     if not coursework:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="CourseWork not found")
     return coursework
+
+
+@router.get("/{coursework_id}/submissions", response_model=List[CourseWorkSubmissionResponse])
+def get_coursework_submissions(coursework_id: int, db: get_db, current_user: get_current_user):
+    """Get all submissions for a specific coursework"""
+    # First check if the coursework exists
+    coursework = db.query(CourseWork).filter(CourseWork.id == coursework_id).first()
+    if not coursework:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="CourseWork not found")
+    
+    # Get all submissions for this coursework
+    submissions = db.query(CourseWorkSubmission).filter(CourseWorkSubmission.coursework_id == coursework_id).all()
+    return submissions
 
 
 @router.put("/{coursework_id}", response_model=CourseWorkResponse)
