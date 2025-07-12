@@ -2,10 +2,9 @@ from fastapi import APIRouter, HTTPException, status
 from typing import List
 from pydantic import BaseModel
 from dependency import get_db, get_current_user
-from models import Student, Program, Course, CourseWork, CourseWorkSubmission, SubmissionStatus
+from models import Student, Program, Course, CourseWork, CourseWorkSubmission
 from schemas import StudentUpdate, StudentResponse
-from schemas import StudentCourseworksResponse
-from datetime import datetime
+from schemas import StudentCourseWorksResponse
 
 router = APIRouter(prefix="/students", tags=["Students"])
 
@@ -149,20 +148,20 @@ def get_current_student_profile(db: get_db, current_user: get_current_user):
     return student
 
 
-@router.get("/{student_id}/courseworks", response_model=StudentCourseworksResponse)
+@router.get("/{student_id}/courseworks", response_model=List[StudentCourseWorksResponse])
 def get_student_courseworks(student_id: int, db: get_db, current_user: get_current_user):
     """
-    Get all coursework submissions for a student.
-    If the student hasn't submitted coursework, create a new submission with pending status.
+    Get all courseworks available to the student from their enrolled programs,
+    along with their submissions if they have made any.
     """
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
     
-    # Get all courseworks for programs the student is enrolled in
+    # Get all programs the student is enrolled in
     student_programs = [program.id for program in student.programs]
     if not student_programs:
-        return StudentCourseworksResponse(student_id=student_id, submissions=[])
+        return []
     
     # Get all courseworks from courses in student's programs
     courseworks = db.query(CourseWork).join(Course).filter(
@@ -170,7 +169,7 @@ def get_student_courseworks(student_id: int, db: get_db, current_user: get_curre
     ).all()
     
     if not courseworks:
-        return StudentCourseworksResponse(student_id=student_id, submissions=[])
+        return []
     
     # Get existing submissions for this student
     existing_submissions = db.query(CourseWorkSubmission).filter(
@@ -180,33 +179,28 @@ def get_student_courseworks(student_id: int, db: get_db, current_user: get_curre
     # Create a map of coursework_id -> submission for quick lookup
     submission_map = {sub.coursework_id: sub for sub in existing_submissions}
     
-    # List to store all submissions (existing + newly created)
-    all_submissions = []
-    new_submissions = []
-    
-    # Process each coursework
+    # Build response with coursework and submission data
+    result = []
     for coursework in courseworks:
-        if coursework.id in submission_map:
-            # Submission already exists
-            all_submissions.append(submission_map[coursework.id])
-        else:
-            # Create new submission with pending status
-            new_submission = CourseWorkSubmission(
-                coursework_id=coursework.id,
-                student_id=student_id,
-                submission_date=datetime.now().isoformat(),
-                status=SubmissionStatus.PENDING
-            )
-            new_submissions.append(new_submission)
-            all_submissions.append(new_submission)
-    
-    # Add all new submissions to the database
-    if new_submissions:
-        db.add_all(new_submissions)
-        db.commit()
+        # Get the course information
+        course = coursework.course
         
-        # Refresh all new submissions to get their IDs
-        for submission in new_submissions:
-            db.refresh(submission)
+        # Get submission if exists
+        submission = submission_map.get(coursework.id)
+        
+        # Create response object
+        coursework_response = StudentCourseWorksResponse(
+            id=coursework.id,
+            course_id=coursework.course_id,
+            title=coursework.title,
+            type=coursework.type,
+            description=coursework.description,
+            due_date=coursework.due_date,
+            marks=coursework.marks,
+            course=course,
+            submission=submission
+        )
+        
+        result.append(coursework_response)
     
-    return StudentCourseworksResponse(student_id=student_id, submissions=all_submissions)
+    return result

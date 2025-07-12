@@ -4,7 +4,8 @@ from typing import List
 from dependency import get_db, get_current_user
 from models import CourseWork
 from models import Faculty
-from schemas.academic import CourseWorkCreate, CourseWorkUpdate, CourseWorkResponse
+from models import CourseWorkSubmission
+from schemas import CourseWorkCreate, CourseWorkUpdate, CourseWorkResponse, CourseWorkSubmissionResponse
 from utils import upload_file, delete_file
 
 router = APIRouter(prefix="/courseworks", tags=["CourseWorks"])
@@ -35,6 +36,19 @@ def get_coursework(coursework_id: int, db: get_db, current_user: get_current_use
     if not coursework:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="CourseWork not found")
     return coursework
+
+
+@router.get("/{coursework_id}/submissions", response_model=List[CourseWorkSubmissionResponse])
+def get_coursework_submissions(coursework_id: int, db: get_db, current_user: get_current_user):
+    """Get all submissions for a specific coursework"""
+    # First check if the coursework exists
+    coursework = db.query(CourseWork).filter(CourseWork.id == coursework_id).first()
+    if not coursework:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="CourseWork not found")
+    
+    # Get all submissions for this coursework
+    submissions = db.query(CourseWorkSubmission).filter(CourseWorkSubmission.coursework_id == coursework_id).all()
+    return submissions
 
 
 @router.put("/{coursework_id}", response_model=CourseWorkResponse)
