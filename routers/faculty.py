@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_, func
+from sqlalchemy import or_, and_, func, cast, String
+from sqlalchemy.dialects.postgresql import JSONB
 from typing import List, Optional
 from dependency import get_db, get_current_user
 from models.user import Faculty, User
@@ -19,6 +20,97 @@ def get_faculties(db: get_db, current_user: get_current_user, skip: int = 0, lim
     
     faculties = query.all()
     return faculties
+
+
+
+@router.get("/search", response_model=List[FacultyResponse])
+def search_faculties(
+    db: get_db, 
+    current_user: get_current_user,
+    designation: Optional[str] = Query(None, description="Filter by designation"),
+    expertise: Optional[str] = Query(None, description="Filter by expertise area"),
+    year: Optional[int] = Query(None, description="Filter by joining year"),
+    on_leave: Optional[bool] = Query(None, description="Filter by leave status"),
+    skip: int = Query(0, description="Number of records to skip"),
+    limit: int = Query(100, description="Maximum number of records to return")
+):
+    """
+    Search faculties based on various criteria:
+    - designation: Filter by faculty designation
+    - expertise: Search for specific expertise area
+    - year: Filter by joining year
+    - on_leave: Filter by leave status
+    """
+    query = db.query(Faculty)
+    
+    # Apply filters based on provided parameters
+    if designation:
+        query = query.filter(Faculty.designation.ilike(f"%{designation}%"))
+    
+    if expertise:
+        # Search in JSON array for expertise (PostgreSQL-specific)
+        # Convert JSON to text and search for the expertise string
+        query = query.filter(
+            or_(
+                cast(Faculty.expertise, String).like(f'%"{expertise}"%'),  # Exact match in quotes
+                cast(Faculty.expertise, String).like(f'%{expertise}%')     # Partial match
+            )
+        )
+    
+    if year is not None:
+        # Filter by joining year - extract year from joining_date string
+        query = query.filter(Faculty.joining_date.like(f'%{year}%'))
+
+    
+    if on_leave is not None:
+        leave_value = 1 if on_leave else 0
+        query = query.filter(Faculty.on_leave == leave_value)
+    
+    # Apply pagination
+    faculties = query.offset(skip).limit(limit).all()
+    
+    return faculties
+
+
+@router.get("/expertise/{expertise_area}", response_model=List[FacultyResponse])
+def get_faculties_by_expertise(
+    expertise_area: str,
+    db: get_db,
+    current_user: get_current_user,
+    skip: int = Query(0, description="Number of records to skip"),
+    limit: int = Query(100, description="Maximum number of records to return")
+):
+    """
+    Get all faculties who have a specific expertise area.
+    This searches for exact or partial matches in the expertise array.
+    """
+    # Search for faculties with the specified expertise (PostgreSQL-specific)
+    query = db.query(Faculty).filter(
+        or_(
+            cast(Faculty.expertise, String).like(f'%"{expertise_area}"%'),  # Exact match in quotes
+            cast(Faculty.expertise, String).like(f'%{expertise_area}%')     # Partial match
+        )
+    )
+    
+    faculties = query.offset(skip).limit(limit).all()
+    
+    return faculties
+
+
+@router.get("/expertise", response_model=List[str])
+def get_all_expertise_areas(db: get_db, current_user: get_current_user):
+    """
+    Get all unique expertise areas from all faculties.
+    """
+    faculties = db.query(Faculty).filter(Faculty.expertise.isnot(None)).all()
+    
+    # Collect all expertise areas
+    all_expertise = set()
+    for faculty in faculties:
+        if faculty.expertise:
+            all_expertise.update(faculty.expertise)
+    
+    return sorted(list(all_expertise))
 
 
 @router.get("/{faculty_id}", response_model=FacultyResponse)
@@ -137,81 +229,3 @@ def get_current_faculty_profile(db: get_db, current_user: get_current_user):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Faculty profile not found")
     return faculty
 
-
-@router.get("/search", response_model=List[FacultyResponse])
-def search_faculties(
-    db: get_db, 
-    current_user: get_current_user,
-    designation: Optional[str] = Query(None, description="Filter by designation"),
-    expertise: Optional[str] = Query(None, description="Filter by expertise area"),
-    bio: Optional[str] = Query(None, description="Search in bio"),
-    on_leave: Optional[bool] = Query(None, description="Filter by leave status"),
-    skip: int = Query(0, description="Number of records to skip"),
-    limit: int = Query(100, description="Maximum number of records to return")
-):
-    """
-    Search faculties based on various criteria:
-    - designation: Filter by faculty designation
-    - expertise: Search for specific expertise area
-    - bio: Search in faculty bio
-    - on_leave: Filter by leave status
-    """
-    query = db.query(Faculty)
-    
-    # Apply filters based on provided parameters
-    if designation:
-        query = query.filter(Faculty.designation.ilike(f"%{designation}%"))
-    
-    if expertise:
-        # Search in JSON array for expertise
-        query = query.filter(func.json_extract(Faculty.expertise, '$').like(f'%{expertise}%'))
-    
-    if bio:
-        query = query.filter(Faculty.bio.ilike(f"%{bio}%"))
-    
-    if on_leave is not None:
-        leave_value = 1 if on_leave else 0
-        query = query.filter(Faculty.on_leave == leave_value)
-    
-    # Apply pagination
-    faculties = query.offset(skip).limit(limit).all()
-    
-    return faculties
-
-
-@router.get("/expertise/{expertise_area}", response_model=List[FacultyResponse])
-def get_faculties_by_expertise(
-    expertise_area: str,
-    db: get_db,
-    current_user: get_current_user,
-    skip: int = Query(0, description="Number of records to skip"),
-    limit: int = Query(100, description="Maximum number of records to return")
-):
-    """
-    Get all faculties who have a specific expertise area.
-    This searches for exact or partial matches in the expertise array.
-    """
-    # Search for faculties with the specified expertise
-    query = db.query(Faculty).filter(
-        func.json_extract(Faculty.expertise, '$').like(f'%{expertise_area}%')
-    )
-    
-    faculties = query.offset(skip).limit(limit).all()
-    
-    return faculties
-
-
-@router.get("/expertise", response_model=List[str])
-def get_all_expertise_areas(db: get_db, current_user: get_current_user):
-    """
-    Get all unique expertise areas from all faculties.
-    """
-    faculties = db.query(Faculty).filter(Faculty.expertise.isnot(None)).all()
-    
-    # Collect all expertise areas
-    all_expertise = set()
-    for faculty in faculties:
-        if faculty.expertise:
-            all_expertise.update(faculty.expertise)
-    
-    return sorted(list(all_expertise))
