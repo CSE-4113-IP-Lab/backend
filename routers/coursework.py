@@ -2,7 +2,8 @@ from fastapi import APIRouter, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
 from dependency import get_db, get_current_user
-from models.academic import CourseWork
+from models import CourseWork
+from models import Faculty
 from schemas.academic import CourseWorkCreate, CourseWorkUpdate, CourseWorkResponse
 from utils import upload_file, delete_file
 
@@ -12,6 +13,10 @@ router = APIRouter(prefix="/courseworks", tags=["CourseWorks"])
 @router.post("", response_model=CourseWorkResponse, status_code=status.HTTP_201_CREATED)
 def create_coursework(coursework: CourseWorkCreate, db: get_db, current_user: get_current_user):
     db_coursework = CourseWork(**coursework.model_dump())
+    faculty = db.query(Faculty).filter(Faculty.user_id == current_user.id).first()
+    if not faculty:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You must be a faculty member to create coursework")
+    db_coursework.created_by = faculty.id  # Use faculty.id instead of the faculty object
     db.add(db_coursework)
     db.commit()
     db.refresh(db_coursework)
