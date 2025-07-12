@@ -2,18 +2,39 @@ import datetime
 from fastapi import APIRouter, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
+from datetime import datetime, timedelta, date
+import os
+from dotenv import load_dotenv
 from dependency import get_db, get_current_user
 from models.content import Post
 from models import User
-
 from schemas.content import PostCreate, PostUpdate, PostResponse
 from utils import upload_file, delete_file
+
+load_dotenv()
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
+def is_post_archived(post_date: date) -> bool:
+    """Helper function to check if a post is archived based on its date"""
+    archive_days = int(os.getenv("ARCHIVE_DAYS", 30))
+    archive_cutoff = datetime.now().date() - timedelta(days=archive_days)
+    return post_date < archive_cutoff
+
+
+def check_admin_access(current_user):
+    """Helper function to check if current user has admin access"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+
+
 @router.post("", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
 def create_post(post: PostCreate, db: get_db, current_user: get_current_user):
+    check_admin_access(current_user)
     db_post = Post(**post.model_dump())
     db.add(db_post)
     db.commit()
@@ -22,8 +43,14 @@ def create_post(post: PostCreate, db: get_db, current_user: get_current_user):
 
 
 @router.get("", response_model=List[PostResponse])
-def get_posts(db: get_db):
-    posts = db.query(Post).all()
+def get_posts(db: get_db, include_archived: bool = False):
+    """Get all posts. By default, only returns active posts."""
+    if include_archived:
+        posts = db.query(Post).all()
+    else:
+        archive_days = int(os.getenv("ARCHIVE_DAYS", 30))
+        archive_cutoff = datetime.now().date() - timedelta(days=archive_days)
+        posts = db.query(Post).filter(Post.date >= archive_cutoff).all()
     return posts
 
 @router.get("/upcoming/events", response_model=List[PostResponse])
@@ -44,6 +71,7 @@ def get_post(post_id: int, db: get_db, current_user: get_current_user):
 
 @router.put("/{post_id}", response_model=PostResponse)
 def update_post(post_id: int, post_update: PostUpdate, db: get_db, current_user: get_current_user):
+    check_admin_access(current_user)
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
@@ -59,6 +87,7 @@ def update_post(post_id: int, post_update: PostUpdate, db: get_db, current_user:
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(post_id: int, db: get_db, current_user: get_current_user):
+    check_admin_access(current_user)
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
@@ -74,6 +103,7 @@ async def add_post_attachment(
     current_user: get_current_user,
     file: UploadFile = File(...)
 ):
+    check_admin_access(current_user)
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
@@ -98,6 +128,7 @@ def remove_post_attachment(
     db: get_db, 
     current_user: get_current_user
 ):
+    check_admin_access(current_user)
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
@@ -122,7 +153,6 @@ def remove_post_attachment(
     db.refresh(post)
     
     return post
-
 
 @router.post("/{post_id}/participants/{user_id}")
 def add_participant_to_post(
@@ -215,4 +245,61 @@ def get_post_participants(
         "post_title": post.title,
         "participants_count": len(participants),
         "participants": participants
+
+@router.get("/archived", response_model=List[PostResponse])
+def get_archived_posts(db: get_db, current_user: get_current_user):
+    """Get all archived posts (older than ARCHIVE_DAYS)"""
+    archive_days = int(os.getenv("ARCHIVE_DAYS", 30))
+    archive_cutoff = datetime.now().date() - timedelta(days=archive_days)
+    
+    archived_posts = db.query(Post).filter(Post.date < archive_cutoff).all()
+    return archived_posts
+
+
+@router.get("/active", response_model=List[PostResponse])
+def get_active_posts(db: get_db):
+    """Get all active posts (newer than ARCHIVE_DAYS)"""
+    archive_days = int(os.getenv("ARCHIVE_DAYS", 30))
+    archive_cutoff = datetime.now().date() - timedelta(days=archive_days)
+    
+    active_posts = db.query(Post).filter(Post.date >= archive_cutoff).all()
+    return active_posts
+
+
+@router.get("/archived/{post_id}", response_model=PostResponse)
+def get_archived_post(post_id: int, db: get_db, current_user: get_current_user):
+    """Get a specific archived post by ID"""
+    archive_days = int(os.getenv("ARCHIVE_DAYS", 30))
+    archive_cutoff = datetime.now().date() - timedelta(days=archive_days)
+    
+    post = db.query(Post).filter(
+        Post.id == post_id,
+        Post.date < archive_cutoff
+    ).first()
+    
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Archived post not found"
+        )
+    return post
+
+
+@router.get("/stats/archive")
+def get_archive_stats(db: get_db, current_user: get_current_user):
+    """Get archive statistics - total active and archived posts count (Admin only)"""
+    check_admin_access(current_user)
+    archive_days = int(os.getenv("ARCHIVE_DAYS", 30))
+    archive_cutoff = datetime.now().date() - timedelta(days=archive_days)
+    
+    total_posts = db.query(Post).count()
+    active_posts = db.query(Post).filter(Post.date >= archive_cutoff).count()
+    archived_posts = db.query(Post).filter(Post.date < archive_cutoff).count()
+    
+    return {
+        "total_posts": total_posts,
+        "active_posts": active_posts,
+        "archived_posts": archived_posts,
+        "archive_days": archive_days,
+        "archive_cutoff_date": archive_cutoff
     }

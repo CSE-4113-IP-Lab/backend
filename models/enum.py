@@ -26,6 +26,15 @@ class ScheduleType(enum.Enum):
     EXAM = "exam"
     SEMINAR = "seminar"
 
+class DayOfWeek(enum.Enum):
+    MONDAY = "monday"
+    TUESDAY = "tuesday"
+    WEDNESDAY = "wednesday"
+    THURSDAY = "thursday"
+    FRIDAY = "friday"
+    SATURDAY = "saturday"
+    SUNDAY = "sunday"
+
 class StatusType(enum.Enum):
     PENDING = "pending"
     CONFIRMED = "confirmed"
