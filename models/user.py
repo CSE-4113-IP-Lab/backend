@@ -24,7 +24,6 @@ class User(Base):
     faculty = relationship("Faculty", back_populates="user")
     created_meetings = relationship("Meeting", back_populates="creator")
     meeting_participations = relationship("MeetingParticipant", back_populates="user")
-    payment_transactions = relationship("PaymentTransaction", back_populates="user")
     research_contributions = relationship("ResearchContribution", back_populates="user")
     bookings = relationship("Booking", back_populates="request_by")
 
@@ -33,7 +32,7 @@ class Student(Base):
     __tablename__ = 'students'
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     year = Column(Integer, nullable=True)
     semester = Column(Integer, nullable=True)
     registration_number = Column(String, unique=True, nullable=True)
@@ -43,13 +42,14 @@ class Student(Base):
     programs = relationship("Program", secondary=student_programs, back_populates="students")
     marks = relationship("Mark", back_populates="student")
     submissions = relationship("CourseWorkSubmission", back_populates="student")
+    payment_transactions = relationship("PaymentTransaction", back_populates="student")
 
 
 class Faculty(Base):
     __tablename__ = 'faculties'
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
 
     bio = Column(Text, nullable=True)
     

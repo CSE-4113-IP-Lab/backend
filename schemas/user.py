@@ -53,10 +53,10 @@ class UserResponse(UserBase):
 
 # Student schemas
 class StudentBase(BaseModel):
-    year: int
-    semester: int
-    registration_number: str
-    session: str
+    year: Optional[int] = None
+    semester: Optional[int] = None
+    registration_number: Optional[str] = None
+    session: Optional[str] = None
 
 
 class StudentCreate(StudentBase):

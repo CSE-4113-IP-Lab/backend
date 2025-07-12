@@ -11,13 +11,15 @@ class Program(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     type = Column(Enum(ProgramType), nullable=False)  # e.g., 'BSc', 'MSc', 'PhD'
-    name = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
     duration = Column(Integer, nullable=False)  # in years
     description = Column(String, nullable=True)
 
     is_active = Column(Integer, default=1) 
 
     courses = relationship("Course", back_populates="program")
+    transactions = relationship("PaymentTransaction", back_populates="program")
+    payment_fees = relationship("PaymentFee", back_populates="program")
     schedules = relationship("Schedule", back_populates="program")
     admission_timelines = relationship("AdmissionTimeline", back_populates="program")
     students = relationship("Student", secondary=student_programs, back_populates="programs")
@@ -38,7 +40,7 @@ class Course(Base):
     program = relationship("Program", back_populates="courses")
     courseworks = relationship("CourseWork", back_populates="course")
     marks = relationship("Mark", back_populates="course")
-    transactions = relationship("PaymentTransaction", back_populates="course")
+   
 
 
 class Mark(Base):
