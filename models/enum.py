@@ -32,6 +32,14 @@ class StatusType(enum.Enum):
     CANCELLED = "cancelled"
     FAILED = "failed"
 
+class EquipmentRequestStatus(enum.Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    HANDOVER = "handover"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
 class SubmissionStatus(enum.Enum):
     PENDING = "pending"
     SUBMITTED = "submitted"
@@ -58,5 +66,19 @@ class BookingType(enum.Enum):
     LAB = "lab"
     CONFERENCE_ROOM = "conference_room"
     EVENT_SPACE = "event_space"
+
+
+class RoomStatus(enum.Enum):
+    AVAILABLE = "available"
+    OCCUPIED = "occupied"
+    MAINTENANCE = "maintenance"
+    RESERVED = "reserved"
+
+
+class RoomBookingStatus(enum.Enum):
+    SCHEDULED = "scheduled"
+    ONGOING = "ongoing"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
 
 

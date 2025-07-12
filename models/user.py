@@ -27,6 +27,7 @@ class User(Base):
     payment_transactions = relationship("PaymentTransaction", back_populates="user")
     research_contributions = relationship("ResearchContribution", back_populates="user")
     bookings = relationship("Booking", back_populates="request_by")
+    equipment_requests = relationship("EquipmentRequest", foreign_keys="EquipmentRequest.user_id", back_populates="user")
 
 
 class Student(Base):
