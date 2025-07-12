@@ -17,7 +17,7 @@ def test_post_crud():
         "phone": "345",
         "password": "password123",
         "gender": "male",
-        "role": "user"
+        "role": "admin"
     })
     assert signup_response.status_code == 201
     user_id = signup_response.json().get("id")
@@ -115,7 +115,7 @@ def test_post_not_found():
         "phone": "345",
         "password": "password123",
         "gender": "male",
-        "role": "user"
+        "role": "admin"
     })
     assert signup_response.status_code == 201
     user_id = signup_response.json().get("id")
@@ -165,7 +165,7 @@ def test_post_different_types():
         "phone": "345",
         "password": "password123",
         "gender": "male",
-        "role": "user"
+        "role": "admin"
     })
     user_id = signup_response.json().get("id")
     
@@ -230,7 +230,7 @@ def test_post_participant_management():
         "phone": "345",
         "password": "password123",
         "gender": "male",
-        "role": "user"
+        "role": "admin"
     })
     assert signup_response1.status_code == 201
     creator_id = signup_response1.json().get("id")
@@ -394,7 +394,7 @@ def test_post_participant_not_found_scenarios():
         "phone": "345",
         "password": "password123",
         "gender": "male",
-        "role": "user"
+        "role": "admin"
     })
     assert signup_response.status_code == 201
     user_id = signup_response.json().get("id")
