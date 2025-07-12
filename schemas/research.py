@@ -13,8 +13,14 @@ class ResearchContributionBase(BaseModel):
 class ResearchContributionCreate(ResearchContributionBase):
     pass
 
-class ResearchContributionUpdate(ResearchContributionBase):
-    pass
+class ResearchContributionUpdate(BaseModel):
+    type: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    date: Optional[str] = None
+    institution: Optional[str] = None
+    journal: Optional[str] = None
+    link: Optional[str] = None
 
 class ResearchContributionResponse(ResearchContributionBase):
     id: int
