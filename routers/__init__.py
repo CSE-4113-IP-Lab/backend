@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from routers import (post, schedule, admission_timeline, program, 
                      course, coursework, coursework_submission, mark, 
                      auth, token, user, student, faculty,meeting,
-                     participate,payment,research,resource, logs);
+                     participate,payment,research,resource, logs, class_schedule)
 
 
 router = APIRouter(
@@ -30,4 +30,5 @@ router.include_router(participate.router)
 router.include_router(payment.router)
 router.include_router(research.router)
 router.include_router(resource.router)
+router.include_router(class_schedule.router)
 
