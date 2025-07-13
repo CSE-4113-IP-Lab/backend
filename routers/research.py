@@ -28,9 +28,42 @@ def create_contribution(
 @router.get("", response_model=List[ResearchContributionResponse])
 def get_my_contributions(
     db: get_db,
-    current_user: get_current_user
+    current_user: get_current_user,
+    skip: int = 0,
+    limit: int = 100,
+    type: str = None,
+    title: str = None,
+    institution: str = None,
+    journal: str = None,
+    date_from: str = None,
+    date_to: str = None,
+    supervisor_id: int = None
 ):
-    return db.query(ResearchContribution).filter_by(user_id=current_user.id).all()
+    query = db.query(ResearchContribution).filter_by(user_id=current_user.id)
+    
+    # Apply filters based on query parameters
+    if type:
+        query = query.filter(ResearchContribution.type.ilike(f"%{type}%"))
+    
+    if title:
+        query = query.filter(ResearchContribution.title.ilike(f"%{title}%"))
+    
+    if institution:
+        query = query.filter(ResearchContribution.institution.ilike(f"%{institution}%"))
+    
+    if journal:
+        query = query.filter(ResearchContribution.journal.ilike(f"%{journal}%"))
+    
+    if date_from:
+        query = query.filter(ResearchContribution.date >= date_from)
+    
+    if date_to:
+        query = query.filter(ResearchContribution.date <= date_to)
+    
+    if supervisor_id:
+        query = query.filter(ResearchContribution.supervisor_id == supervisor_id)
+    
+    return query.offset(skip).limit(limit).all()
 
 
 @router.put("/{contribution_id}", response_model=ResearchContributionResponse)

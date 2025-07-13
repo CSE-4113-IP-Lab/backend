@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from schemas import UserResponse
 
 class ResearchContributionBase(BaseModel):
     type: str
@@ -8,7 +9,8 @@ class ResearchContributionBase(BaseModel):
     date: str  # or `date` if using `DATE` type in DB
     institution: Optional[str] = None
     journal: Optional[str] = None
-    link: Optional[str] = None  # changed from HttpUrl to str
+    link: Optional[str] = None  
+    supervisor_id: Optional[int] = None
 
 class ResearchContributionCreate(ResearchContributionBase):
     pass
@@ -21,10 +23,13 @@ class ResearchContributionUpdate(BaseModel):
     institution: Optional[str] = None
     journal: Optional[str] = None
     link: Optional[str] = None
+    supervisor_id: Optional[int] = None
 
 class ResearchContributionResponse(ResearchContributionBase):
     id: int
     user_id: int
+    supervisor: Optional[UserResponse] = None
+    user: UserResponse
 
     class Config:
-        orm_mode = True  # For SQLAlchemy model compatibility
+        from_attributes = True  # Updated from orm_mode for Pydantic v2

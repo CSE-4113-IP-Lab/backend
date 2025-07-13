@@ -66,6 +66,7 @@ class ResearchContribution(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    supervisor_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     type = Column(String, nullable=False)  
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
@@ -73,5 +74,7 @@ class ResearchContribution(Base):
     institution = Column(String, nullable=True)  
     journal = Column(String, nullable=True)
     link = Column(String, nullable=True)  
+
+    supervisor = relationship("User", foreign_keys=[supervisor_id])
     
-    user = relationship("User", back_populates="research_contributions")
+    user = relationship("User", foreign_keys=[user_id], back_populates="research_contributions")
