@@ -5,8 +5,15 @@ from db import engine
 import os
 from fastapi.staticfiles import StaticFiles
 from routers import router as api_router
+import logging
 
 app = FastAPI()
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s: %(message)s'
+)
 
 # CORS configuration
 app.add_middleware(

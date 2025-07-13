@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from routers import (post, schedule, admission_timeline, program, 
                      course, coursework, coursework_submission, mark, 
                      auth, token, user, student, faculty,meeting,
-                     participate,payment,research,resource, logs, room, class_schedule);
+                     participate,payment,research,resource, logs, room, class_schedule, agent);
 
 router = APIRouter(
     prefix="/api/v1",
@@ -11,6 +11,7 @@ router = APIRouter(
 
 # Include the routers for different functionalities
 router.include_router(token.router)
+router.include_router(agent.router)
 router.include_router(auth.router)
 router.include_router(user.router)
 router.include_router(student.router)
