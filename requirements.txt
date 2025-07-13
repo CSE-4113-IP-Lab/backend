@@ -7,7 +7,7 @@ sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 
 # Pydantic for data validation
-pydantic[email]==2.5.0
+pydantic==2.9.0
 
 # Authentication and security
 python-jose[cryptography]==3.3.0
