@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime as DateTime
 from models import ProgramType, SubmissionStatus, MarkType, DayOfWeek
-from schemas import FileBase, FacultyResponse
+from schemas import FileBase, FacultyResponse, StudentResponse
 
 
 # Program schemas
@@ -136,6 +136,7 @@ class CourseWorkSubmissionUpdate(BaseModel):
 
 
 class CourseWorkSubmissionResponse(CourseWorkSubmissionBase):
+    student: Optional[StudentResponse] = None
     coursework: Optional[CourseWorkResponse] = None
     attachments: List[FileBase] = []
 
@@ -148,7 +149,8 @@ class StudentCourseWorksResponse(CourseWorkBase):
     course: Optional[CourseBase] = None
     submission: Optional[CourseWorkSubmissionWithAttachments] = None
     creator: Optional[FacultyResponse] = None
-
+    created_at: DateTime
+    updated_at: DateTime
     class Config:
         from_attributes = True
    

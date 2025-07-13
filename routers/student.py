@@ -3,8 +3,8 @@ from typing import List
 from dependency import get_db, get_current_user
 from models import Student, Program, Course, CourseWork, CourseWorkSubmission
 from schemas import StudentUpdate, StudentResponse
-from schemas import StudentCourseWorksResponse, CourseBase, CourseWorkSubmissionBase, FacultyResponse
-from schemas.academic import CourseWorkSubmissionWithAttachments
+from schemas import StudentCourseWorksResponse, CourseBase, CourseResponse, FacultyResponse
+from schemas import CourseWorkSubmissionWithAttachments
 
 
 
@@ -22,6 +22,22 @@ def get_students(db: get_db, current_user: get_current_user, skip: int = 0, limi
     
     students = query.all()
     return students
+
+
+@router.get("/courses", response_model=List[CourseResponse])
+def get_student_courses(db: get_db, current_user: get_current_user):
+    student = db.query(Student).filter(Student.user_id == current_user.id).first()
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    # Get all programs the student is enrolled in
+    student_programs = [program.id for program in student.programs]
+    if not student_programs:
+        return []
+
+    # Get all courses from programs the student is enrolled in
+    courses = db.query(Course).filter(Course.program_id.in_(student_programs)).all()
+    return courses
 
 
 @router.get("/courseworks", response_model=List[StudentCourseWorksResponse])
@@ -79,7 +95,9 @@ def get_student_courseworks( db: get_db, current_user: get_current_user):
            marks=coursework.marks,
            course=course,
            submission=submission_base,
-           creator=creator
+           creator=creator,
+           created_at=coursework.created_at,
+            updated_at=coursework.updated_at
        )
         
        result.append(coursework_response)

@@ -171,8 +171,8 @@ def oauth_login(user: OAuthUserCreate, db: get_db):
             "access_token": access_token,
             "type": "Bearer",
             "email": db_user.email,
-            "role": db_user.role.value,
-            "id": db_user.id,
+            "user_role": db_user.role.value,
+            "user_id": db_user.id,
             "username": db_user.username,
             "is_new": False
         }
@@ -213,8 +213,8 @@ def oauth_login(user: OAuthUserCreate, db: get_db):
             "access_token": access_token,
             "type": "Bearer",
             "email": new_user.email,
-            "role": new_user.role.value,
-            "id": new_user.id,
+            "user_role": new_user.role.value,
+            "user_id": new_user.id,
             "username": new_user.username,
             "is_new": True
         }

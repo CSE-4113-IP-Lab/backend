@@ -24,6 +24,10 @@ def get_coursework_submissions(db: get_db, current_user: get_current_user):
     submissions = db.query(CourseWorkSubmission).all()
     return submissions
 
+@router.get("/coursework/{coursework_id}", response_model=List[CourseWorkSubmissionResponse])
+def get_coursework_submissions_by_coursework(coursework_id: int, db: get_db, current_user: get_current_user):
+    submissions = db.query(CourseWorkSubmission).filter(CourseWorkSubmission.coursework_id == coursework_id).all()
+    return submissions
 
 @router.get("/{submission_id}", response_model=CourseWorkSubmissionResponse)
 def get_coursework_submission(submission_id: int, db: get_db, current_user: get_current_user):
