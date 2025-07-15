@@ -32,4 +32,3 @@ router.include_router(resource.router)
 router.include_router(room.router)
 router.include_router(class_schedule.router)
 
-

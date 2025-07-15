@@ -1,6 +1,6 @@
 from pydantic import BaseModel, validator
-from datetime import datetime, time
-from typing import Optional, List
+from datetime import datetime, time, date
+from typing import Optional, List, Dict
 from models.enum import RoomStatus, RoomBookingStatus
 
 
@@ -36,11 +36,32 @@ class TimeSlotInfo(BaseModel):
     is_available: bool
 
 
+class RoomTimeSlotInfo(BaseModel):
+    day_offset: int  # 0-6
+    slot_date: date
+    slot_time: time
+    is_available: bool
+    booking_id: Optional[int] = None
+
+
+class DaySchedule(BaseModel):
+    day_offset: int
+    date: date
+    slots: List[RoomTimeSlotInfo]
+
+
+class WeeklySchedule(BaseModel):
+    room_id: int
+    room_number: str
+    week_schedule: List[DaySchedule]
+
+
 class RoomResponse(RoomBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    available_slots: Optional[List[TimeSlotInfo]] = []
+    available_slots: Optional[List[TimeSlotInfo]] = []  # Backward compatibility
+    weekly_schedule: Optional[WeeklySchedule] = None
     
     class Config:
         from_attributes = True
@@ -49,14 +70,32 @@ class RoomResponse(RoomBase):
 class RoomBookingBase(BaseModel):
     room_id: int
     purpose: str
-    start_datetime: datetime
-    end_datetime: datetime
+    booking_date: date
+    start_time: time
+    end_time: time
     notes: Optional[str] = None
     
-    @validator('end_datetime')
+    @validator('end_time')
     def end_after_start(cls, v, values):
-        if 'start_datetime' in values and v <= values['start_datetime']:
+        if 'start_time' in values and v <= values['start_time']:
             raise ValueError('End time must be after start time')
+        return v
+    
+    @validator('start_time', 'end_time')
+    def validate_30_minute_slots(cls, v):
+        """Ensure times align with 30-minute slots"""
+        if v.minute not in [0, 30] or v.second != 0 or v.microsecond != 0:
+            raise ValueError('Times must align with 30-minute slots (e.g., 08:00, 08:30, 09:00)')
+        return v
+    
+    @validator('booking_date')
+    def validate_booking_date(cls, v):
+        """Ensure booking is within next 7 days"""
+        from datetime import date, timedelta
+        today = date.today()
+        max_date = today + timedelta(days=6)
+        if v < today or v > max_date:
+            raise ValueError('Booking date must be within the next 7 days (today to day 6)')
         return v
 
 
@@ -66,8 +105,9 @@ class RoomBookingCreate(RoomBookingBase):
 
 class RoomBookingUpdate(BaseModel):
     purpose: Optional[str] = None
-    start_datetime: Optional[datetime] = None
-    end_datetime: Optional[datetime] = None
+    booking_date: Optional[date] = None
+    start_time: Optional[time] = None
+    end_time: Optional[time] = None
     notes: Optional[str] = None
     status: Optional[RoomBookingStatus] = None
 
@@ -75,6 +115,7 @@ class RoomBookingUpdate(BaseModel):
 class RoomBookingResponse(RoomBookingBase):
     id: int
     user_id: int
+    duration_slots: int
     status: RoomBookingStatus
     created_at: datetime
     updated_at: datetime
@@ -82,7 +123,7 @@ class RoomBookingResponse(RoomBookingBase):
     approved_at: Optional[datetime] = None
     
     # Related data
-    room: Optional["RoomResponse"] = None
+    room: Optional[Dict] = None
     user_name: Optional[str] = None
     approved_by_name: Optional[str] = None
     
@@ -91,28 +132,51 @@ class RoomBookingResponse(RoomBookingBase):
 
 
 class AvailableRoomsRequest(BaseModel):
-    start_datetime: datetime
-    end_datetime: datetime
+    booking_date: date
+    start_time: time
+    end_time: time
     purpose: Optional[str] = None
     capacity: Optional[int] = None
 
 
 class BookRoomRequest(BaseModel):
     room_id: int
-    start_datetime: datetime
-    duration_hours: int
-    duration_minutes: int
+    booking_date: date
+    start_time: time
+    end_time: time
     purpose: str
     notes: Optional[str] = None
     
-    @validator('duration_hours')
-    def validate_duration_hours(cls, v):
-        if v < 0 or v > 12:
-            raise ValueError('Duration hours must be between 0 and 12')
+    @validator('end_time')
+    def end_after_start(cls, v, values):
+        if 'start_time' in values and v <= values['start_time']:
+            raise ValueError('End time must be after start time')
         return v
     
-    @validator('duration_minutes')
-    def validate_duration_minutes(cls, v):
-        if v < 0 or v >= 60:
-            raise ValueError('Duration minutes must be between 0 and 59')
+    @validator('start_time', 'end_time')
+    def validate_30_minute_slots(cls, v):
+        """Ensure times align with 30-minute slots"""
+        if v.minute not in [0, 30] or v.second != 0 or v.microsecond != 0:
+            raise ValueError('Times must align with 30-minute slots (e.g., 08:00, 08:30, 09:00)')
+        return v
+    
+    @validator('booking_date')
+    def validate_booking_date(cls, v):
+        """Ensure booking is within next 7 days"""
+        from datetime import date, timedelta
+        today = date.today()
+        max_date = today + timedelta(days=6)
+        if v < today or v > max_date:
+            raise ValueError('Booking date must be within the next 7 days (today to day 6)')
+        return v
+
+
+class SlotAvailabilityRequest(BaseModel):
+    room_id: int
+    day_offset: int  # 0-6
+    
+    @validator('day_offset')
+    def validate_day_offset(cls, v):
+        if v < 0 or v > 6:
+            raise ValueError('Day offset must be between 0 and 6')
         return v
