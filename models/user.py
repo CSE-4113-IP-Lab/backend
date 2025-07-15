@@ -1,15 +1,16 @@
+from datetime import datetime
 from models import Base
 from models.associations import student_programs, faculty_programs
-from sqlalchemy import Column, ForeignKey, Integer, String, Enum, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Enum, Text, JSON
 from sqlalchemy.orm import relationship
-from models import UserRole
+from models import UserRole, OTPType
 
 
 class User(Base):
     __tablename__ = 'users'
     
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
+    username = Column(String)
     email = Column(String, unique=True, index=True)
     phone = Column(String, nullable=True)  
     password = Column(String, nullable=True)
@@ -24,17 +25,18 @@ class User(Base):
     faculty = relationship("Faculty", back_populates="user")
     created_meetings = relationship("Meeting", back_populates="creator")
     meeting_participations = relationship("MeetingParticipant", back_populates="user")
-    payment_transactions = relationship("PaymentTransaction", back_populates="user")
-    research_contributions = relationship("ResearchContribution", back_populates="user")
+    research_contributions = relationship("ResearchContribution", foreign_keys="ResearchContribution.user_id", back_populates="user")
     bookings = relationship("Booking", back_populates="request_by")
     equipment_requests = relationship("EquipmentRequest", foreign_keys="EquipmentRequest.user_id", back_populates="user")
+    posts = relationship("Post", secondary="post_participants", back_populates="participants")
+
 
 
 class Student(Base):
     __tablename__ = 'students'
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     year = Column(Integer, nullable=True)
     semester = Column(Integer, nullable=True)
     registration_number = Column(String, unique=True, nullable=True)
@@ -44,19 +46,35 @@ class Student(Base):
     programs = relationship("Program", secondary=student_programs, back_populates="students")
     marks = relationship("Mark", back_populates="student")
     submissions = relationship("CourseWorkSubmission", back_populates="student")
+    payment_transactions = relationship("PaymentTransaction", back_populates="student")
 
 
 class Faculty(Base):
     __tablename__ = 'faculties'
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
 
     bio = Column(Text, nullable=True)
     
     designation = Column(String, nullable=True)
     joining_date = Column(String, nullable=True)
 
+    on_leave = Column(Integer, default=0)  # 0 for no, 1 for yes
+
+    expertise = Column(JSON, nullable=True)  # Array of strings for areas of expertise
+
     user = relationship("User", back_populates="faculty")
     courses = relationship("Course", back_populates="teacher")
     programs = relationship("Program", secondary=faculty_programs, back_populates="faculties")
+
+
+
+class OTP(Base):
+    __tablename__ = 'otps'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    userEmail = Column(String,nullable=False)
+    otp= Column(String, nullable=False)
+    type = Column(Enum(OTPType), nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.now)

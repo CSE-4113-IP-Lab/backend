@@ -35,19 +35,30 @@ class MeetingParticipant(Base):
     meeting = relationship("Meeting", back_populates="participants")
     user = relationship("User", back_populates="meeting_participations")
 
+class PaymentFee(Base):
+    __tablename__ = 'payment_fees'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    program_id = Column(Integer, ForeignKey('programs.id'), nullable=False)
+    amount = Column(Integer, nullable=False)
+    description = Column(String, nullable=True)
+    due_date = Column(DateTime, nullable=False)
+
+    program = relationship("Program", back_populates="payment_fees")  
+
 class PaymentTransaction(Base):
     __tablename__ = 'payment_transactions'
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    course_id = Column(Integer, ForeignKey('courses.id'), nullable=True)  
+    student_id = Column(Integer, ForeignKey('students.id'), nullable=False)
+    program_id = Column(Integer, ForeignKey('programs.id'), nullable=True)
     amount = Column(Integer, nullable=False)
     transaction_date = Column(DateTime, nullable=False, default=datetime.now)
     status = Column(Enum(StatusType), default=StatusType.PENDING)
     payment_method = Column(String, nullable=False)
 
-    user = relationship("User", back_populates="payment_transactions")
-    course = relationship("Course", back_populates="transactions")
+    student = relationship("Student", back_populates="payment_transactions")
+    program = relationship("Program", back_populates="transactions") 
 
 
 class ResearchContribution(Base):
@@ -55,6 +66,7 @@ class ResearchContribution(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    supervisor_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     type = Column(String, nullable=False)  
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
@@ -62,5 +74,7 @@ class ResearchContribution(Base):
     institution = Column(String, nullable=True)  
     journal = Column(String, nullable=True)
     link = Column(String, nullable=True)  
+
+    supervisor = relationship("User", foreign_keys=[supervisor_id])
     
-    user = relationship("User", back_populates="research_contributions")
+    user = relationship("User", foreign_keys=[user_id], back_populates="research_contributions")

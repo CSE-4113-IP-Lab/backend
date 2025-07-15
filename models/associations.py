@@ -36,3 +36,10 @@ coursework_submission_files = Table(
     Column("submission_id", ForeignKey("coursework_submissions.id"), primary_key=True),
     Column("file_id", ForeignKey("files.id"), primary_key=True)
 )
+
+post_participants = Table(
+    "post_participants",
+    Base.metadata,
+    Column("post_id", ForeignKey("posts.id"), primary_key=True),
+    Column("user_id", ForeignKey("users.id"), primary_key=True)
+)

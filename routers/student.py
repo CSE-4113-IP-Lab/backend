@@ -1,10 +1,12 @@
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import List
 from dependency import get_db, get_current_user
-from models.user import Student, User
-from models.academic import Program
-from schemas.user import StudentCreate, StudentUpdate, StudentResponse
+from models import Student, Program, Course, CourseWork, CourseWorkSubmission
+from schemas import StudentUpdate, StudentResponse
+from schemas import StudentCourseWorksResponse, CourseBase, CourseResponse, FacultyResponse
+from schemas import CourseWorkSubmissionWithAttachments
+
+
 
 router = APIRouter(prefix="/students", tags=["Students"])
 
@@ -20,6 +22,87 @@ def get_students(db: get_db, current_user: get_current_user, skip: int = 0, limi
     
     students = query.all()
     return students
+
+
+@router.get("/courses", response_model=List[CourseResponse])
+def get_student_courses(db: get_db, current_user: get_current_user):
+    student = db.query(Student).filter(Student.user_id == current_user.id).first()
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    # Get all programs the student is enrolled in
+    student_programs = [program.id for program in student.programs]
+    if not student_programs:
+        return []
+
+    # Get all courses from programs the student is enrolled in
+    courses = db.query(Course).filter(Course.program_id.in_(student_programs)).all()
+    return courses
+
+
+@router.get("/courseworks", response_model=List[StudentCourseWorksResponse])
+def get_student_courseworks( db: get_db, current_user: get_current_user):
+    """
+    Get all courseworks available to the student from their enrolled programs,
+    along with their submissions if they have made any.
+    """
+    student = db.query(Student).filter(Student.user_id == current_user.id).first()
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+    
+    # Get all programs the student is enrolled in
+    student_programs = [program.id for program in student.programs]
+    if not student_programs:
+        return []
+    
+    # Get all courseworks from courses in student's programs
+    courseworks = db.query(CourseWork).join(Course).filter(
+        Course.program_id.in_(student_programs)
+    ).all()
+    
+    if not courseworks:
+        return []
+    
+    # Get existing submissions for this student
+    existing_submissions = db.query(CourseWorkSubmission).filter(
+        CourseWorkSubmission.student_id == student.id
+    ).all()
+    
+    # Create a map of coursework_id -> submission for quick lookup
+    submission_map = {sub.coursework_id: sub for sub in existing_submissions}
+    
+    # Build response with coursework and submission data
+    result = []
+    for coursework in courseworks:
+       
+       # Convert SQLAlchemy objects to Pydantic models using from_attributes
+       course = CourseBase.model_validate(coursework.course, from_attributes=True)
+
+       submission = submission_map.get(coursework.id)
+
+       submission_base = CourseWorkSubmissionWithAttachments.model_validate(submission, from_attributes=True) if submission else None
+
+       creator = FacultyResponse.model_validate(coursework.creator, from_attributes=True) if coursework.creator else None
+
+        # Create response object using model_validate to properly handle nested objects
+       coursework_response = StudentCourseWorksResponse(
+           id=coursework.id,
+           course_id=coursework.course_id,
+           title=coursework.title,
+           type=coursework.type,
+           description=coursework.description,
+           due_date=coursework.due_date,
+           marks=coursework.marks,
+           course=course,
+           submission=submission_base,
+           creator=creator,
+           created_at=coursework.created_at,
+            updated_at=coursework.updated_at
+       )
+        
+       result.append(coursework_response)
+    
+    return result
 
 
 @router.get("/{student_id}", response_model=StudentResponse)

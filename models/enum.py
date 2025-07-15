@@ -26,6 +26,15 @@ class ScheduleType(enum.Enum):
     EXAM = "exam"
     SEMINAR = "seminar"
 
+class DayOfWeek(enum.Enum):
+    MONDAY = "monday"
+    TUESDAY = "tuesday"
+    WEDNESDAY = "wednesday"
+    THURSDAY = "thursday"
+    FRIDAY = "friday"
+    SATURDAY = "saturday"
+    SUNDAY = "sunday"
+
 class StatusType(enum.Enum):
     PENDING = "pending"
     CONFIRMED = "confirmed"
@@ -66,6 +75,23 @@ class BookingType(enum.Enum):
     LAB = "lab"
     CONFERENCE_ROOM = "conference_room"
     EVENT_SPACE = "event_space"
+
+class RoomStatus(enum.Enum):
+    AVAILABLE = "available"
+    OCCUPIED = "occupied"
+    MAINTENANCE = "maintenance"
+    RESERVED = "reserved"
+
+
+class RoomBookingStatus(enum.Enum):
+    SCHEDULED = "scheduled"
+    ONGOING = "ongoing"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+class OTPType(enum.Enum):
+    Register ="REGISTER"
+    FORGOT_PASSWORD = "FORGOT_PASSWORD"
 
 
 class RoomStatus(enum.Enum):

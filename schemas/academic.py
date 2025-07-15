@@ -1,8 +1,8 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime as DateTime
-from models import ProgramType, SubmissionStatus, MarkType
-from schemas import FileBase, FacultyResponse
+from models import ProgramType, SubmissionStatus, MarkType, DayOfWeek
+from schemas import FileBase, FacultyResponse, StudentResponse
 
 
 # Program schemas
@@ -36,10 +36,14 @@ class ProgramResponse(ProgramBase):
 # Course schemas
 class CourseBase(BaseModel):
     name: str
+    course_code: Optional[str] = None
     program_id: int
     teacher_id: Optional[int] = None
     credits: int
     description: Optional[str] = None
+    semester: Optional[int] = None
+    year: Optional[int] = None
+    batch: Optional[str] = None
 
 
 class CourseCreate(CourseBase):
@@ -48,10 +52,14 @@ class CourseCreate(CourseBase):
 
 class CourseUpdate(BaseModel):
     name: Optional[str] = None
+    course_code: Optional[str] = None
     program_id: Optional[int] = None
     teacher_id: Optional[int] = None
     credits: Optional[int] = None
     description: Optional[str] = None
+    semester: Optional[int] = None
+    year: Optional[int] = None
+    batch: Optional[str] = None
 
 
 class CourseResponse(CourseBase):
@@ -72,8 +80,7 @@ class CourseWorkBase(BaseModel):
 
 
 class CourseWorkCreate(CourseWorkBase):
-    created_by: int
-
+    pass
 
 class CourseWorkUpdate(BaseModel):
     course_id: Optional[int] = None
@@ -88,6 +95,7 @@ class CourseWorkResponse(CourseWorkBase):
     id: int
     created_by: int
     creator: Optional[FacultyResponse] = None
+    course: Optional[CourseBase] = None
     created_at: DateTime
     updated_at: DateTime
     attachments: List[FileBase] = []
@@ -98,6 +106,7 @@ class CourseWorkResponse(CourseWorkBase):
 
 # CourseWorkSubmission schemas
 class CourseWorkSubmissionBase(BaseModel):
+    id: int 
     coursework_id: int
     student_id: int
     submission_date: str
@@ -106,8 +115,17 @@ class CourseWorkSubmissionBase(BaseModel):
     feedback: Optional[str] = None
 
 
-class CourseWorkSubmissionCreate(CourseWorkSubmissionBase):
-    pass
+class CourseWorkSubmissionCreate(BaseModel):
+    coursework_id: int
+    student_id: int
+    
+
+class CourseWorkSubmissionWithAttachments(CourseWorkSubmissionBase):
+    attachments: List[FileBase] = []
+
+    class Config:
+        from_attributes = True
+
 
 
 class CourseWorkSubmissionUpdate(BaseModel):
@@ -118,11 +136,24 @@ class CourseWorkSubmissionUpdate(BaseModel):
 
 
 class CourseWorkSubmissionResponse(CourseWorkSubmissionBase):
-    id: int
+    student: Optional[StudentResponse] = None
+    coursework: Optional[CourseWorkResponse] = None
     attachments: List[FileBase] = []
 
     class Config:
         from_attributes = True
+
+# Custom response model for student courseworks
+class StudentCourseWorksResponse(CourseWorkBase):
+    id: int
+    course: Optional[CourseBase] = None
+    submission: Optional[CourseWorkSubmissionWithAttachments] = None
+    creator: Optional[FacultyResponse] = None
+    created_at: DateTime
+    updated_at: DateTime
+    class Config:
+        from_attributes = True
+   
 
 
 # Mark schemas
@@ -169,6 +200,43 @@ class ProgramCGPAResponse(BaseModel):
     program_id: int
     program_name: str
     students: List[StudentCGPA] = []
+
+    class Config:
+        from_attributes = True
+
+
+# ClassSchedule schemas
+class ClassScheduleBase(BaseModel):
+    course_id: int
+    day_of_week: DayOfWeek
+    start_time: str  # Format: "HH:MM"
+    end_time: str    # Format: "HH:MM"
+    room: Optional[str] = None
+    batch: Optional[str] = None
+    semester: Optional[int] = None
+    year: Optional[int] = None
+    is_active: Optional[int] = 1
+
+
+class ClassScheduleCreate(ClassScheduleBase):
+    pass
+
+
+class ClassScheduleUpdate(BaseModel):
+    course_id: Optional[int] = None
+    day_of_week: Optional[DayOfWeek] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    room: Optional[str] = None
+    batch: Optional[str] = None
+    semester: Optional[int] = None
+    year: Optional[int] = None
+    is_active: Optional[int] = None
+
+
+class ClassScheduleResponse(ClassScheduleBase):
+    id: int
+    course: Optional[CourseResponse] = None
 
     class Config:
         from_attributes = True

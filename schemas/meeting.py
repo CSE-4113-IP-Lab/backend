@@ -1,10 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import date, time
-from models.administrative import MeetingStatusType, InviteStatusType
-
-
-# ---------- Participant Schemas ----------
+from models import MeetingStatusType, InviteStatusType
 
 class ParticipantBase(BaseModel):
     user_id: int
@@ -17,9 +14,6 @@ class ParticipantResponse(ParticipantBase):
     id: int
     class Config:
         orm_mode = True
-
-
-# ---------- Meeting Schemas ----------
 
 class MeetingBase(BaseModel):
     title: str
