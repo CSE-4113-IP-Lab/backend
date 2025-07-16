@@ -94,3 +94,17 @@ class OTPType(enum.Enum):
     FORGOT_PASSWORD = "FORGOT_PASSWORD"
 
 
+class RoomStatus(enum.Enum):
+    AVAILABLE = "available"
+    OCCUPIED = "occupied"
+    MAINTENANCE = "maintenance"
+    RESERVED = "reserved"
+
+
+class RoomBookingStatus(enum.Enum):
+    SCHEDULED = "scheduled"
+    ONGOING = "ongoing"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
