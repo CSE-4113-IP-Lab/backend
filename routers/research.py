@@ -28,7 +28,6 @@ def create_contribution(
 @router.get("", response_model=List[ResearchContributionResponse])
 def get_my_contributions(
     db: get_db,
-    current_user: get_current_user,
     skip: int = 0,
     limit: int = 100,
     type: str = None,
@@ -39,7 +38,7 @@ def get_my_contributions(
     date_to: str = None,
     supervisor_id: int = None
 ):
-    query = db.query(ResearchContribution).filter_by(user_id=current_user.id)
+    query = db.query(ResearchContribution)
     
     # Apply filters based on query parameters
     if type:

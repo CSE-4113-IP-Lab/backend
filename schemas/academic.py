@@ -75,6 +75,7 @@ class CourseWorkBase(BaseModel):
     title: str
     type: str
     description: Optional[str] = None
+    requirements : Optional[str] = None
     due_date: DateTime
     marks: Optional[float] = None
 
@@ -179,6 +180,7 @@ class MarkUpdate(BaseModel):
 
 class MarkResponse(MarkBase):
     id: int
+    student: Optional[StudentResponse] = None
 
     class Config:
         from_attributes = True
@@ -188,7 +190,7 @@ class MarkResponse(MarkBase):
 class StudentCGPA(BaseModel):
     student_id: int
     student_name: str
-    registration_number: str
+    registration_number: Optional[str] = None
     cgpa: float
     total_credits: int
 
@@ -235,6 +237,43 @@ class ClassScheduleUpdate(BaseModel):
 
 
 class ClassScheduleResponse(ClassScheduleBase):
+    id: int
+    course: Optional[CourseResponse] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ExamSchedule schemas
+class ExamScheduleBase(BaseModel):
+    course_id: int
+    exam_date: DateTime
+    type: str  # e.g., "Midterm", "Final"
+    start_time: str  # Format: "HH:MM"
+    end_time: str    # Format: "HH:MM"
+    room: Optional[str] = None
+    batch: Optional[str] = None
+    semester: Optional[int] = None
+    year: Optional[int] = None
+
+
+class ExamScheduleCreate(ExamScheduleBase):
+    pass
+
+
+class ExamScheduleUpdate(BaseModel):
+    course_id: Optional[int] = None
+    exam_date: Optional[DateTime] = None
+    type: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    room: Optional[str] = None
+    batch: Optional[str] = None
+    semester: Optional[int] = None
+    year: Optional[int] = None
+
+
+class ExamScheduleResponse(ExamScheduleBase):
     id: int
     course: Optional[CourseResponse] = None
 

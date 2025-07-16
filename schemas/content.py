@@ -4,6 +4,15 @@ from datetime import date as Date, datetime as DateTime
 from models import PostType, ScheduleType
 from schemas import FileBase
 
+# Simple user schema for participants
+class UserBasic(BaseModel):
+    id: int
+    username: str
+    email: str
+
+    class Config:
+        from_attributes = True
+
 
 class PostBase(BaseModel):
     type: PostType
@@ -28,6 +37,7 @@ class PostResponse(PostBase):
     created_at: DateTime
     updated_at: DateTime
     attachments: List[FileBase] = []
+    participants: List[UserBasic] = []
 
     class Config:
         from_attributes = True

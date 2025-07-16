@@ -1,9 +1,9 @@
 import enum
 
 class MarkType(enum.Enum):
-    MIDTERM = "midterm"
+    INCOURSE = "incourse"
     FINAL = "final"
-    ATTENDANCE = "attendance"
+    OTHER = "other"
 
 class MeetingStatusType(enum.Enum):
     SCHEDULED = "scheduled"

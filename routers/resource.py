@@ -18,7 +18,7 @@ from schemas.resource import (
 )
 
 
-router = APIRouter(prefix="/equipment", tags=["equipment"])
+router = APIRouter(prefix="/equipment", tags=["Equipment"])
 
 
 # Helper Functions

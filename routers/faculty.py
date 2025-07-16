@@ -13,7 +13,7 @@ router = APIRouter(prefix="/faculties", tags=["Faculties"])
 
 
 @router.get("", response_model=List[FacultyResponse])
-def get_faculties(db: get_db, current_user: get_current_user, skip: int = 0, limit: int = 100, designation: str = None):
+def get_faculties(db: get_db, skip: int = 0, limit: int = 100, designation: str = None):
     query = db.query(Faculty).offset(skip).limit(limit)
     
     if designation:

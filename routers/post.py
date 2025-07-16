@@ -1,10 +1,10 @@
-import datetime
 from fastapi import APIRouter, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime, timedelta, date
 import os
 from dotenv import load_dotenv
+from models.enum import PostType
 from dependency import get_db, get_current_user
 from models.content import Post
 from models import User, UserRole
@@ -56,10 +56,31 @@ def get_posts(db: get_db, include_archived: bool = False):
 @router.get("/upcoming/events", response_model=List[PostResponse])
 def get_upcoming_events(db: get_db, current_user: get_current_user):
     """Get all upcoming events"""
-    # Assuming 'Post' has a 'date' field to filter upcoming events
-    upcoming_events = db.query(Post).filter(Post.date > datetime.now()).all()
+    upcoming_events = db.query(Post).filter(
+        Post.date > datetime.now().date(),
+        Post.type == PostType.EVENT,
+        ~Post.participants.any(User.id == current_user.id)
+    ).all()
     return upcoming_events
 
+@router.get("/registered/events", response_model=List[PostResponse])
+def get_registered_events(db: get_db, current_user: get_current_user):
+    """Get all upcoming events where the current user is registered as a participant"""
+    registered_events = db.query(Post).filter(
+        Post.date > datetime.now().date(),
+        Post.type == PostType.EVENT,
+        Post.participants.any(User.id == current_user.id)
+    ).all()
+    return registered_events
+
+@router.get("/archived/events", response_model=List[PostResponse])
+def get_archived_events(db: get_db, current_user: get_current_user):
+    """Get all archived events"""
+    archived_events = db.query(Post).filter(
+        Post.date < datetime.now().date(),
+        Post.type == PostType.EVENT
+    ).all()
+    return archived_events
 
 @router.get("/{post_id}", response_model=PostResponse)
 def get_post(post_id: int, db: get_db, current_user: get_current_user):

@@ -35,4 +35,8 @@ app.mount("/api/v1/media", StaticFiles(directory="media"), name="media")
 def read_root():
     return {"message": "Welcome to the CSEDU backend!"}
 
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "CSEDU Backend"}
+
 app.include_router(api_router)
