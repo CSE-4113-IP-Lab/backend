@@ -3,3 +3,6 @@ from schemas.user import *
 from schemas.content import *
 from schemas.academic import *
 from schemas.payment import *
+from schemas.resource import *
+from schemas.room import *
+from schemas.agent import *

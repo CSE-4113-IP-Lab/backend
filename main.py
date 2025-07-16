@@ -5,8 +5,15 @@ from db import engine
 import os
 from fastapi.staticfiles import StaticFiles
 from routers import router as api_router
+import logging
 
 app = FastAPI()
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s: %(message)s'
+)
 
 # CORS configuration
 app.add_middleware(
@@ -27,5 +34,9 @@ app.mount("/api/v1/media", StaticFiles(directory="media"), name="media")
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the CSEDU backend!"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "CSEDU Backend"}
 
 app.include_router(api_router)

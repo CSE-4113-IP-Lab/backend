@@ -73,6 +73,7 @@ class CourseWork(Base):
     updated_at = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
     created_by = Column(Integer, ForeignKey('faculties.id'), nullable=False)  
     due_date = Column(DateTime, nullable=False)
+    requirements = Column(String, nullable=True, default='')
     marks = Column(Float, nullable=True) 
 
     attachments = relationship("File", secondary=coursework_files, overlaps="courseworks")
@@ -104,12 +105,29 @@ class ClassSchedule(Base):
     id = Column(Integer, primary_key=True, index=True)
     course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)
     day_of_week = Column(Enum(DayOfWeek), nullable=False)
-    start_time = Column(String, nullable=False)  # Format: "HH:MM"
-    end_time = Column(String, nullable=False)    # Format: "HH:MM"
+    start_time = Column(String, nullable=False)  
+    end_time = Column(String, nullable=False)    
     room = Column(String, nullable=True)
     batch = Column(String, nullable=True)
     semester = Column(Integer, nullable=True)
     year = Column(Integer, nullable=True)
     is_active = Column(Integer, default=1)
+
+    course = relationship("Course")
+
+
+class ExamSchedule(Base):
+    __tablename__ = 'exam_schedules'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    type = Column(String, nullable=False) 
+    course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)
+    exam_date = Column(DateTime, nullable=False)
+    start_time = Column(String, nullable=False) 
+    end_time = Column(String, nullable=False)   
+    room = Column(String, nullable=True)
+    batch = Column(String, nullable=True)
+    semester = Column(Integer, nullable=True)
+    year = Column(Integer, nullable=True)
 
     course = relationship("Course")

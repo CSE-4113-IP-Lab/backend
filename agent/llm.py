@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 gemini = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-preview-04-17",
+    model="gemini-2.5-flash",
     temperature=0,
     timeout=60,  
     max_retries=2,

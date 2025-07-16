@@ -8,8 +8,6 @@ import os
 import uuid
 import base64
 
-logging.basicConfig(level=logging.INFO)
-
 pwdContext = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash(password:str):

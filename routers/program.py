@@ -2,7 +2,9 @@ from fastapi import APIRouter, HTTPException, status
 from typing import List
 from dependency import get_db, get_current_user
 from models.academic import Program
+from models.user import Student
 from schemas.academic import ProgramCreate, ProgramUpdate, ProgramResponse
+from schemas.user import StudentResponse
 
 router = APIRouter(prefix="/programs", tags=["Programs"])
 
@@ -82,6 +84,16 @@ def create_program(program: ProgramCreate, db: get_db, current_user: get_current
 def get_programs(db: get_db, current_user: get_current_user):
     programs = db.query(Program).all()
     return programs
+
+@router.get("/{program_id}/students", response_model=List[StudentResponse])
+def get_program_students(program_id: int, db: get_db, current_user: get_current_user):
+    """Get all students enrolled in a specific program"""
+    program = db.query(Program).filter(Program.id == program_id).first()
+    if not program:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Program not found")
+    
+    students = db.query(Student).join(Student.programs).filter(Program.id == program_id).all()
+    return students
 
 
 @router.get("/{program_id}", response_model=ProgramResponse)
