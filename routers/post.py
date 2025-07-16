@@ -53,6 +53,27 @@ def get_posts(db: get_db, include_archived: bool = False):
         posts = db.query(Post).filter(Post.date >= archive_cutoff).all()
     return posts
 
+
+@router.get("/active", response_model=List[PostResponse])
+def get_active_posts(db: get_db):
+    """Get all active posts (newer than ARCHIVE_DAYS)"""
+    archive_days = int(os.getenv("ARCHIVE_DAYS", 30))
+    archive_cutoff = datetime.now().date() - timedelta(days=archive_days)
+    
+    active_posts = db.query(Post).filter(Post.date >= archive_cutoff).all()
+    return active_posts
+
+@router.get("/archived", response_model=List[PostResponse])
+def get_archived_posts(db: get_db, current_user: get_current_user):
+    """Get all archived posts (older than ARCHIVE_DAYS)"""
+    archive_days = int(os.getenv("ARCHIVE_DAYS", 30))
+    archive_cutoff = datetime.now().date() - timedelta(days=archive_days)
+    
+    archived_posts = db.query(Post).filter(Post.date < archive_cutoff).all()
+    return archived_posts
+
+
+
 @router.get("/upcoming/events", response_model=List[PostResponse])
 def get_upcoming_events(db: get_db, current_user: get_current_user):
     """Get all upcoming events"""
@@ -268,24 +289,7 @@ def get_post_participants(
         "participants": participants
     }
 
-@router.get("/archived", response_model=List[PostResponse])
-def get_archived_posts(db: get_db, current_user: get_current_user):
-    """Get all archived posts (older than ARCHIVE_DAYS)"""
-    archive_days = int(os.getenv("ARCHIVE_DAYS", 30))
-    archive_cutoff = datetime.now().date() - timedelta(days=archive_days)
-    
-    archived_posts = db.query(Post).filter(Post.date < archive_cutoff).all()
-    return archived_posts
 
-
-@router.get("/active", response_model=List[PostResponse])
-def get_active_posts(db: get_db):
-    """Get all active posts (newer than ARCHIVE_DAYS)"""
-    archive_days = int(os.getenv("ARCHIVE_DAYS", 30))
-    archive_cutoff = datetime.now().date() - timedelta(days=archive_days)
-    
-    active_posts = db.query(Post).filter(Post.date >= archive_cutoff).all()
-    return active_posts
 
 
 @router.get("/archived/{post_id}", response_model=PostResponse)

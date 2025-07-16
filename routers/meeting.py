@@ -46,15 +46,6 @@ def get_meetings(
     return meetings
 
 
-# --- Get One Meeting ---
-@router.get("/{meeting_id}", response_model=MeetingResponse)
-def get_meeting(meeting_id: int, db: get_db):
-    meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
-    if not meeting:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meeting not found")
-    return meeting
-
-
 # --- Update Meeting ---
 @router.put("/{meeting_id}", response_model=MeetingResponse)
 def update_meeting(meeting_id: int, meeting_update: MeetingUpdate, db: get_db, current_user: get_current_user):
@@ -64,7 +55,7 @@ def update_meeting(meeting_id: int, meeting_update: MeetingUpdate, db: get_db, c
     if meeting.created_by != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this meeting")
 
-    for key, value in meeting_update.dict(exclude_unset=True).items():
+    for key, value in meeting_update.model_dump(exclude_unset=True).items():
         setattr(meeting, key, value)
     
     db.commit()
@@ -95,7 +86,7 @@ def get_my_invited_meetings(db: get_db, current_user: get_current_user,
     
     meetings =  db.query(Meeting).join(MeetingParticipant).filter(
         MeetingParticipant.user_id == current_user.id,
-        MeetingParticipant.status == InviteStatusType.ACCEPTED
+        MeetingParticipant.status == InviteStatusType.INVITED
     )
 
     if status:
@@ -122,7 +113,7 @@ def get_my_meetings(
     if status:
         base_query = base_query.filter(Meeting.status == status)
 
-    created_meetings = db.query(Meeting).filter(
+    created_meetings = base_query.filter(
         Meeting.created_by == current_user.id
     ).all()
     # Get both created and invited meetings
@@ -137,6 +128,17 @@ def get_my_meetings(
 
     all_meetings = created_meetings + accepted_meetings
     return all_meetings
+
+
+
+# --- Get One Meeting ---
+@router.get("/{meeting_id}", response_model=MeetingResponse)
+def get_meeting(meeting_id: int, db: get_db):
+    meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
+    if not meeting:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meeting not found")
+    return meeting
+
 
 
 @router.post("/{meeting_id}/participants", response_model=dict)
