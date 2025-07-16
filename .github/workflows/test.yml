@@ -10,11 +10,10 @@ on:
   push:
     branches:
       - main
-
+      
 jobs:
   test:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || (github.event_name == 'push' && !contains(github.event.head_commit.message, 'Merge pull request'))
     services:
       postgres:
         image: postgres:13
@@ -32,9 +31,11 @@ jobs:
 
     env:
       DB_URL: postgresql://testuser:testpassword@localhost:5432/testdb
-      SECRET_KEY: 09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7
+      SECRET_KEY: ${{secrets.JWT_SECRET}}
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+     
 
     steps:
       - name: Checkout code
