@@ -16,7 +16,7 @@ class Meeting(Base):
     date = Column(Date, nullable=False)
     time = Column(Time, nullable=False)
     platform = Column(String, nullable=True)
-    location = Column(String, nullable=False)
+    link = Column(String, nullable=False)
     status = Column(Enum(MeetingStatusType), default=MeetingStatusType.SCHEDULED)
 
     creator = relationship("User", back_populates="created_meetings")
