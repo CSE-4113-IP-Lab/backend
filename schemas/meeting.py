@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import date, time
 from models import MeetingStatusType, InviteStatusType
+from schemas.user import UserResponse
 
 class ParticipantBase(BaseModel):
     user_id: int
@@ -12,6 +13,7 @@ class ParticipantCreate(ParticipantBase):
 
 class ParticipantResponse(ParticipantBase):
     id: int
+    user: Optional[UserResponse] = None  
     class Config:
         orm_mode = True
 
@@ -21,7 +23,7 @@ class MeetingBase(BaseModel):
     date: date
     time: time
     platform: Optional[str] = None
-    location: str
+    link: str
     status: Optional[MeetingStatusType] = MeetingStatusType.SCHEDULED
 
 class MeetingCreate(MeetingBase):
@@ -32,7 +34,8 @@ class MeetingUpdate(BaseModel):
     description: Optional[str]
     date: Optional[date]
     time: Optional[time]
-    location: Optional[str]
+    platform: Optional[str]
+    link: Optional[str]
     status: Optional[MeetingStatusType]
 
 class MeetingResponse(MeetingBase):

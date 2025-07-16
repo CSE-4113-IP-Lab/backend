@@ -34,3 +34,4 @@ router.include_router(room.router)
 router.include_router(class_schedule.router)
 router.include_router(exam_schedule.router)
 
+
