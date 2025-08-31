@@ -5,9 +5,9 @@ from models.enum import RoomStatus, RoomBookingStatus
 
 
 class RoomBase(BaseModel):
-    room_number: str
-    purpose: str
-    capacity: int
+    room_number: Optional[str] = None
+    purpose: Optional[str] = None
+    capacity: Optional[int] = None
     location: Optional[str] = None
     description: Optional[str] = None
     status: RoomStatus = RoomStatus.AVAILABLE
