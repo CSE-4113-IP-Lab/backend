@@ -36,7 +36,7 @@ class MeetingUpdate(BaseModel):
     time: Optional[time]
     platform: Optional[str]
     link: Optional[str]
-    status: Optional[MeetingStatusType]
+    status: Optional[MeetingStatusType]= MeetingStatusType.SCHEDULED
 
 class MeetingResponse(MeetingBase):
     id: int
